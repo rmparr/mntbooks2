@@ -1,5 +1,5 @@
 table! {
-    book (id) {
+    bookings (id) {
         id -> Text,
         date -> Text,
         amount_cents -> Integer,
@@ -50,15 +50,15 @@ table! {
         customer_state -> Nullable<Text>,
         customer_country -> Text,
         vat_included -> Text,
-        replaces_id -> Text,
+        replaces_id -> Nullable<Text>,
         replaced_by_id -> Nullable<Text>,
-        created_at -> Nullable<Text>,
-        updated_at -> Nullable<Text>,
+        created_at -> Text,
+        updated_at -> Text,
     }
 }
 
 allow_tables_to_appear_in_same_query!(
-    book,
+    bookings,
     documents,
     invoices,
 );

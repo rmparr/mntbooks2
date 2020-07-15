@@ -19,10 +19,10 @@ create table invoices (
   customer_state text,
   customer_country text not null,
   vat_included text not null,
-  replaces_id text not null,
+  replaces_id text,
   replaced_by_id text,
-  created_at text,
-  updated_at text
+  created_at text not null,
+  updated_at text not null
 );
 
 create table documents (
@@ -36,7 +36,7 @@ create table documents (
   updated_at text not null
 );
 
-create table book (
+create table bookings (
   id text not null primary key,
   date text not null,
   amount_cents integer not null,
