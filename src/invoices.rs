@@ -4,8 +4,8 @@ use diesel::sqlite::SqliteConnection;
 use crate::models::*;
 use crate::schema::invoices::dsl::*;
 
-pub fn create_invoice(conn: &SqliteConnection) -> Invoice {
-    let invoice = Invoice {
+pub fn create_invoice(conn: &SqliteConnection, new_invoice: &Invoice) {
+    /*let invoice = Invoice {
         invoice_id: "2020-0200".to_string(),
         date: "2020-07-15".to_string(),
         amount_cents: 123456,
@@ -29,11 +29,9 @@ pub fn create_invoice(conn: &SqliteConnection) -> Invoice {
         replaced_by_id: None,
         created_at: "2020-07-15 14:05".to_string(),
         updated_at: "2020-07-15 14:05".to_string()
-    };
+    };*/
 
-    diesel::insert_into(invoices).values(&invoice).execute(conn).unwrap();
-
-    invoice
+    diesel::insert_into(invoices).values(new_invoice).execute(conn).unwrap();
 }
 
 pub fn get_all_invoices(conn: &SqliteConnection) -> Vec<Invoice> {
