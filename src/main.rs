@@ -48,6 +48,7 @@ async fn main() -> std::io::Result<()> {
             .data(pool.clone())
             .wrap(middleware::Logger::default())
             .service(get_invoices)
+            .service(get_invoices_json)
             .service(new_invoice)
             .service(add_invoice)
     })

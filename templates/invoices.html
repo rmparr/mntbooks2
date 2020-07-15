@@ -1,0 +1,18 @@
+<html>
+<table border="1">
+  <tr>
+    <th>ID</th>
+    <th>Date</th>
+    <th>Amount</th>
+    <th>Account</th>
+  </tr>
+{% for i in invoices %}
+  <tr>
+    <td>{{ i.invoice_id }}</td>
+    <td>{{ i.date }}</td>
+    <td>{{ i.amount_cents/100.0 }}</td>
+    <td>{{ i.customer_account }}</td>
+  </tr>
+{% endfor %}
+</table>
+</html>

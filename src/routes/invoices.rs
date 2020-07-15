@@ -8,14 +8,33 @@ use crate::models::Invoice;
 
 // see: https://github.com/actix/examples/blob/master/diesel/src/main.rs
 
-#[get("/invoices")]
-pub async fn get_invoices(
+#[get("/invoices.json")]
+pub async fn get_invoices_json(
     pool: web::Data<DbPool>,
 ) -> Result<HttpResponse, Error> {
     let conn = pool.get().expect("couldn't get db connection from pool");
 
     let results = invoices::get_all_invoices(&conn);
     Ok(HttpResponse::Ok().json(results))
+}
+
+#[get("/invoices")]
+pub async fn get_invoices(
+    tmpl: web::Data<tera::Tera>,
+    pool: web::Data<DbPool>,
+) -> Result<HttpResponse, Error> {
+    let conn = pool.get().expect("couldn't get db connection from pool");
+
+    let results = invoices::get_all_invoices(&conn);
+
+    let mut ctx = tera::Context::new();
+    ctx.insert("invoices", &results);
+    
+    let s = tmpl.render("invoices.html", &ctx)
+        .map_err(|_| error::ErrorInternalServerError("Template error"))
+        .unwrap();
+    
+    Ok(HttpResponse::Ok().content_type("text/html").body(s))
 }
 
 #[post("/invoices")]
@@ -33,9 +52,7 @@ pub async fn add_invoice(
 pub async fn new_invoice(
     tmpl: web::Data<tera::Tera>
 ) -> Result<HttpResponse, Error> {
-
-    let mut ctx = tera::Context::new();
-    //ctx.insert("name", &name.to_owned());
+    let ctx = tera::Context::new();
     
     let s = tmpl.render("invoice_new.html", &ctx)
         .map_err(|_| error::ErrorInternalServerError("Template error"))
