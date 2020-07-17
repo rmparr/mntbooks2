@@ -31,7 +31,8 @@ pub fn create_invoice(conn: &SqliteConnection, new_invoice: &Invoice) {
         updated_at: "2020-07-15 14:05".to_string()
     };*/
 
-    diesel::insert_into(invoices).values(new_invoice).execute(conn).unwrap();
+    let res = diesel::insert_into(invoices).values(new_invoice).execute(conn);
+    println!("create_invoice result: {:?}", res);
 }
 
 pub fn get_all_invoices(conn: &SqliteConnection) -> Vec<Invoice> {

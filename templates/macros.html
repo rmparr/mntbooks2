@@ -1,0 +1,24 @@
+{% macro nav(active) %}
+    <nav>
+      <span id="logo">
+        <b><img src="/img/logo.png"> Books</b>
+      </span>
+      
+      <span>
+        {% if active == "invoices" %}
+        Invoices
+        {% else %}
+        <a href="/invoices">Invoices</a>
+        {% endif %}
+      </span>
+      
+      <span>
+        {% if active == "invoice_new" %}
+        New Invoice
+        {% else %}
+        <a href="/invoices/new">New Invoice</a>
+        {% endif %}
+      </span>
+  
+    </nav>
+{% endmacro input %}

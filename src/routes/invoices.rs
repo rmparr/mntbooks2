@@ -48,6 +48,17 @@ pub async fn add_invoice(
     Ok(HttpResponse::Ok().json(&*params))
 }
 
+#[post("/invoices.json")]
+pub async fn add_invoice_json(
+    pool: web::Data<DbPool>,
+    params: web::Json<Invoice>
+) -> Result<HttpResponse, Error> {
+    let conn = pool.get().expect("couldn't get db connection from pool");
+
+    invoices::create_invoice(&conn, &params);
+    Ok(HttpResponse::Ok().json(&*params))
+}
+
 #[get("/invoices/new")]
 pub async fn new_invoice(
     tmpl: web::Data<tera::Tera>

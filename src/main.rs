@@ -1,4 +1,5 @@
 extern crate actix_web;
+extern crate actix_files;
 extern crate dotenv;
 
 #[macro_use]
@@ -6,7 +7,8 @@ extern crate diesel;
 
 use diesel::sqlite::SqliteConnection;
 
-use actix_web::{get, middleware, post, web, App, Error, HttpResponse, HttpServer};
+use actix_web::{error, get, middleware, post, web, App, Error, FromRequest, HttpRequest, HttpResponse, HttpServer};
+use actix_files::Files;
 use diesel::r2d2::{self, ConnectionManager};
 
 use tera::Tera;
@@ -17,6 +19,23 @@ mod invoices;
 mod routes;
 
 use crate::routes::invoices::*;
+use crate::models::Invoice;
+
+fn json_error_handler(err: error::JsonPayloadError, _req: &HttpRequest) -> error::Error {
+    use actix_web::error::JsonPayloadError;
+
+    let detail = err.to_string();
+    let resp = match &err {
+        JsonPayloadError::ContentType => {
+            HttpResponse::UnsupportedMediaType().body(detail)
+        }
+        JsonPayloadError::Deserialize(json_err) if json_err.is_data() => {
+            HttpResponse::UnprocessableEntity().body(detail)
+        }
+        _ => HttpResponse::BadRequest().body(detail),
+    };
+    error::InternalError::from_response(err, resp).into()
+}
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
@@ -51,6 +70,13 @@ async fn main() -> std::io::Result<()> {
             .service(get_invoices_json)
             .service(new_invoice)
             .service(add_invoice)
+            .service(add_invoice_json)
+            .service(Files::new("/css", "static/css/"))
+            .service(Files::new("/js", "static/js/"))
+            .service(Files::new("/img", "static/img/"))
+            .app_data(web::Json::<Invoice>::configure(|cfg| {
+                cfg.error_handler(json_error_handler)
+            }))
     })
     .bind(&bind)?
     .run()
