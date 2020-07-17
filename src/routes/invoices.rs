@@ -37,6 +37,46 @@ pub async fn get_invoices(
     Ok(HttpResponse::Ok().content_type("text/html").body(s))
 }
 
+#[get("/invoices/{id}")]
+pub async fn get_invoice(
+    tmpl: web::Data<tera::Tera>,
+    pool: web::Data<DbPool>,
+    path: web::Path<(String,)>
+) -> Result<HttpResponse, Error> {
+    let conn = pool.get().expect("couldn't get db connection from pool");
+
+    let result = invoices::get_invoice_by_id(&conn, &path.0);
+
+    let line_items:Vec<String> = vec![];
+
+    // TODO load from config
+    let sender_address:Vec<String> = vec!["ACME, Inc.".to_string()];
+    let legal_lines:Vec<String> = vec![];
+    let bank_lines:Vec<String> = vec![];
+    
+    let mut ctx = tera::Context::new();
+    ctx.insert("invoice", &result);
+    ctx.insert("line_items", &line_items);
+    ctx.insert("sender_address", &sender_address);
+    ctx.insert("legal_lines", &legal_lines);
+    ctx.insert("bank_lines", &bank_lines);
+    ctx.insert("net_total", &0);
+    ctx.insert("tax_rate", &16);
+    ctx.insert("tax_total", &0);
+    ctx.insert("total", &0);
+    ctx.insert("outro", &"".to_string());
+    ctx.insert("terms", &"".to_string());
+    
+    let s = tmpl.render("invoice.html", &ctx)
+        .map_err(|e| {
+            println!("{:?}",e);
+            error::ErrorInternalServerError("Template error")
+        })
+        .unwrap();
+    
+    Ok(HttpResponse::Ok().content_type("text/html").body(s))
+}
+
 #[post("/invoices")]
 pub async fn add_invoice(
     pool: web::Data<DbPool>,

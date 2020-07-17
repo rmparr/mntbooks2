@@ -38,3 +38,7 @@ pub fn create_invoice(conn: &SqliteConnection, new_invoice: &Invoice) {
 pub fn get_all_invoices(conn: &SqliteConnection) -> Vec<Invoice> {
     invoices.limit(1000).load::<Invoice>(conn).unwrap()
 }
+
+pub fn get_invoice_by_id(conn: &SqliteConnection, id: &String) -> Invoice {
+    invoices.find(id).first(conn).unwrap()
+}

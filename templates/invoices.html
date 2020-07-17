@@ -26,6 +26,7 @@
         <td>{{ i.customer_account }}</td>
         <td>{{ i.sales_account }}</td>
         <td>{{ i.customer_company }} {{ i.customer_name }}</td>
+        <td><a href="/invoices/{{ i.invoice_id }}">HTML</a></td>
       </tr>
       {% endfor %}
     </table>
