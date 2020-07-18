@@ -4,6 +4,20 @@ use diesel::sqlite::SqliteConnection;
 use crate::models::*;
 use crate::schema::invoices::dsl::*;
 
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct LineItem {
+    title: String,
+    description: String,
+    quantity: i32,
+    price_cents: i32,
+    amount_cents: i32
+}
+
+pub fn invoice_line_items(inv: &Invoice) -> Vec<LineItem> {
+    let items:Vec<LineItem> = serde_json::from_str(&inv.line_items).unwrap();
+    items
+}
+
 pub fn create_invoice(conn: &SqliteConnection, new_invoice: &Invoice) {
     /*let invoice = Invoice {
         invoice_id: "2020-0200".to_string(),

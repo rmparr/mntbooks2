@@ -1,7 +1,7 @@
 extern crate actix_web;
 extern crate actix_files;
 extern crate dotenv;
-
+extern crate toml;
 #[macro_use]
 extern crate diesel;
 
@@ -17,9 +17,11 @@ mod models;
 mod schema;
 mod invoices;
 mod routes;
+mod mntconfig;
 
 use crate::routes::invoices::*;
 use crate::models::Invoice;
+use crate::mntconfig::Config;
 
 fn json_error_handler(err: error::JsonPayloadError, _req: &HttpRequest) -> error::Error {
     use actix_web::error::JsonPayloadError;
@@ -52,6 +54,9 @@ async fn main() -> std::io::Result<()> {
 
     let bind = "127.0.0.1:8080";
 
+    let config_str = std::fs::read_to_string("mntconfig.toml").unwrap();
+    let mntconfig:Config = toml::from_str(&config_str).unwrap();
+
     println!("Starting server at: {}", &bind);
 
     // Start HTTP server
@@ -65,6 +70,7 @@ async fn main() -> std::io::Result<()> {
             .data(tera)
             // set up DB pool to be used with web::Data<Pool> extractor
             .data(pool.clone())
+            .data(mntconfig.clone())
             .wrap(middleware::Logger::default())
             .service(get_invoices)
             .service(get_invoices_json)

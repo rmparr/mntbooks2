@@ -5,6 +5,7 @@ type DbPool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
 
 use crate::invoices;
 use crate::models::Invoice;
+use crate::mntconfig::Config;
 
 // see: https://github.com/actix/examples/blob/master/diesel/src/main.rs
 
@@ -41,25 +42,19 @@ pub async fn get_invoices(
 pub async fn get_invoice(
     tmpl: web::Data<tera::Tera>,
     pool: web::Data<DbPool>,
+    config: web::Data<Config>,
     path: web::Path<(String,)>
 ) -> Result<HttpResponse, Error> {
     let conn = pool.get().expect("couldn't get db connection from pool");
-
+    
     let result = invoices::get_invoice_by_id(&conn, &path.0);
 
-    let line_items:Vec<String> = vec![];
-
-    // TODO load from config
-    let sender_address:Vec<String> = vec!["ACME, Inc.".to_string()];
-    let legal_lines:Vec<String> = vec![];
-    let bank_lines:Vec<String> = vec![];
-    
     let mut ctx = tera::Context::new();
     ctx.insert("invoice", &result);
-    ctx.insert("line_items", &line_items);
-    ctx.insert("sender_address", &sender_address);
-    ctx.insert("legal_lines", &legal_lines);
-    ctx.insert("bank_lines", &bank_lines);
+    ctx.insert("line_items", &invoices::invoice_line_items(&result));
+    ctx.insert("sender_address", &config.company_address);
+    ctx.insert("legal_lines", &config.invoice_legal_lines);
+    ctx.insert("bank_lines", &config.invoice_bank_lines);
     ctx.insert("net_total", &0);
     ctx.insert("tax_rate", &16);
     ctx.insert("tax_total", &0);
