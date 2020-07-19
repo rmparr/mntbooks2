@@ -2,6 +2,8 @@
 
 Cleanup and rewrite of MNTBooks in Rust.
 
+MNTBooks is a minimalist ERP (enterprise resource planning) system for smol manufacturing companies.
+
 ## Getting Started
 
 ```
