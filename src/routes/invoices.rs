@@ -4,9 +4,11 @@ use diesel::sqlite::SqliteConnection;
 type DbPool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
 
 use crate::invoices;
-use crate::invoices::LineItem;
+use crate::invoices::{LineItem, utc_iso_date_string};
 use crate::models::Invoice;
 use crate::mntconfig::Config;
+
+use chrono::prelude::*;
 
 // see: https://github.com/actix/examples/blob/master/diesel/src/main.rs
 
@@ -103,8 +105,8 @@ pub async fn new_invoice(
     let mut ctx = tera::Context::new();
 
     let invoice = Invoice {
-        doc_id: "".to_string(), // FIXME
-        doc_date: "".to_string(), // FIXME today
+        doc_id: "".to_string(), // filled in POST handler
+        doc_date: utc_iso_date_string(&Utc::now()),
         kind: "invoice".to_string(),
         amount_cents: 123456,
         currency: "EUR".to_string(),
@@ -125,8 +127,8 @@ pub async fn new_invoice(
         vat_included: "true".to_string(), // FIXME
         replaces_id: None,
         replaced_by_id: None,
-        created_at: "".to_string(),
-        updated_at: "".to_string()
+        created_at: utc_iso_date_string(&Utc::now()),
+        updated_at: utc_iso_date_string(&Utc::now())
     };
 
     let items:Vec<LineItem> = vec![LineItem {
@@ -158,7 +160,13 @@ pub async fn copy_invoice(
     let result = invoices::get_invoice_by_id(&conn, &path.0);
     let mut ctx = tera::Context::new();
 
-    ctx.insert("invoice", &result);
+    let inv = Invoice {
+        doc_id: "".to_string(),
+        doc_date: utc_iso_date_string(&Utc::now()),
+        ..result.clone()
+    };
+
+    ctx.insert("invoice", &inv);
     ctx.insert("line_items", &invoices::invoice_line_items(&result));
     
     let s = tmpl.render("invoice_new.html", &ctx)

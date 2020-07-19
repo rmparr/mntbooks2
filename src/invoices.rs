@@ -14,6 +14,11 @@ use chrono::prelude::*;
 // like: date, sum, identifier, image (pdf/png/...) url
 // TODO: document is missing a kind
 
+// TODO move to a utility module
+pub fn utc_iso_date_string(utc: &DateTime<Utc>) -> String {
+    format!("{:04}-{:02}-{:02}", utc.year(), utc.month(), utc.day())
+}
+
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct LineItem {
     pub sku: Option<String>,
@@ -48,18 +53,15 @@ pub fn invoice_new_id(conn: &SqliteConnection) -> String {
 }
 
 pub fn create_invoice(conn: &SqliteConnection, new_invoice: &Invoice) -> Invoice {
-    // TODO: accept only a subset of data
-    // TODO: auto-fill invoice id, updated_at, created_at
-
     let new_id = invoice_new_id(conn);
     let inv = Invoice {
         doc_id: new_id,
+        updated_at: utc_iso_date_string(&Utc::now()),
+        created_at: utc_iso_date_string(&Utc::now()),
         ..(*new_invoice).clone()
     };
     
     let res = diesel::insert_into(invoices).values(&inv).execute(conn);
-
-    // TODO create pdf
     println!("create_invoice result: {:?}", res);
 
     inv

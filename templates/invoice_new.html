@@ -30,7 +30,7 @@
           <option value="delivery_note">Delivery Note</option>
         </select> ID: <input type="text" id="iid" placeholder="automatic"><br>
         <span>Replaces ID:</span> <input type="text" id="replaces_id" onchange="recalc()"><br>
-        <span>Date:</span> <input type="text" id="idate" value="" onchange="recalc()"><br>
+        <span>Date:</span> <input type="text" id="idate" value="{{invoice.doc_date}}" onchange="recalc()"><br>
         <span>Order ID:</span> <input type="text" id="ordernum" onchange="recalc()"><br>
         <select id="payment-method" onchange="recalc()">
           <option value="sepa" selected>SEPA</option>
