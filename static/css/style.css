@@ -1,0 +1,159 @@
+@import url('https://rsms.me/inter/inter.css');
+
+* { font-family: "Inter", "Inter UI", "Helvetica Neue", sans-serif; }
+.amount { text-align: right; }
+.credit-bank .amount { font-weight: bold; }
+.amount.positive {
+    font-weight: bold;
+    background-color: lightgreen;
+}
+.amount.negative {
+    font-weight: bold;
+    background-color: lightcoral;
+}
+.date { white-space: nowrap; }
+body {
+    margin: 30px;
+    margin-left: 60px;
+}
+.details { width: 640px; }
+
+.list img {
+    float: left;
+}
+
+.list li {
+    clear: both;
+}
+
+input.receipt {
+    width: 500px;
+}
+
+input.comment {
+    width: 400px;
+    border: none;
+    font-size: inherit;
+    line-height: inherit;
+}
+
+input.account {
+    width: 300px;
+    border: none;
+    font-size: inherit;
+    line-height: inherit;
+}
+
+a {
+    color: #555;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+a:visited {
+    color: #555;
+}
+
+nav {
+    margin-bottom: 40px;
+}
+
+nav span {
+    margin-right: 20px;
+}
+
+#logo img {
+    width: 48px;
+    display: inline-block;
+    position: relative;
+    top: 19px;
+    margin-left: -4px;
+}
+
+tr {
+    vertical-align: top;
+}
+
+tr:nth-child(even) {
+    background: #f8f8f8;
+}
+
+td, th {
+    border-bottom: 1px solid #999;
+    padding: 5px;
+    text-align: left;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+tr.month-row td {
+    padding-bottom: 40px;
+    font-weight: bold;
+}
+
+tr.highlight {
+    background-color: #c0ffff;
+}
+
+.form-group {
+    margin-bottom: 1em;
+}
+
+.form-group input, .form-group select {
+    width: 300px;
+    font-size: 1.2rem;
+}
+
+label {
+    display: block;
+    margin-top: 1em;
+}
+
+.autocomplete-suggestions {
+    width: 800px !important;
+    
+    /*left: 20% !important;*/
+}
+
+.autocomplete-suggestion {
+    white-space: normal !important;
+    padding: 0.3em 0.6em !important;
+}
+
+.autocomplete-suggestion > span.sm {
+    width: 120px;
+    display: inline-block;
+}
+
+.autocomplete-suggestion > span.smr {
+    width: 120px;
+    display: inline-block;
+    text-align: right;
+}
+
+.autocomplete-suggestion img {
+    width: 128px;
+}
+
+a.btn {
+    cursor: pointer;
+    text-decoration: none;
+}
+
+table table {
+    width: 100%;
+    margin-bottom: .6em;
+}
+
+input.receipt {
+    margin-bottom: 1em;
+}
+
+.parts-table img {
+    height: 32px;
+}
