@@ -7,11 +7,13 @@ MNTBooks is a minimalist ERP (enterprise resource planning) system for smol manu
 ## Getting Started
 
 ```
+sudo apt install libsqlite3-dev libpq-dev default-libmysqlclient-dev
+
 cp mntconfig.toml.default mntconfig.toml
 
 cargo install diesel_cli
 export DATABASE_URL=./mntbooks.sqlite
-diesel migration up
+diesel migration run
 
 cargo build
 ./target/debug/mntbooks
