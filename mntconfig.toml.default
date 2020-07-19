@@ -1,0 +1,27 @@
+company_address = [
+  "ACME, Inc.",
+  "Megastreet 9000",
+  "68000 Hypertown"
+]
+
+invoice_legal_lines = [
+
+]
+
+invoice_bank_lines = [
+  "IBAN XYZ",
+  "CyberBank"
+]
+
+invoice_outro_lines_no_tax = [
+  "Steuerfreie Ausfuhrlieferungen nach § 4 Nr. 1a UStG in Verbindung mit § 6 UStG."
+]
+
+invoice_payment_terms = [
+  "Bitte begleichen Sie die Rechnung innerhalb von 7 Tagen ab Rechnungsdatum."
+]
+
+invoice_signature_lines = [
+  "Jane Doe",
+  "CFO"
+]
