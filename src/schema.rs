@@ -9,7 +9,7 @@ table! {
 table! {
     bookings (id) {
         id -> Text,
-        date -> Text,
+        booking_date -> Text,
         amount_cents -> Integer,
         details -> Text,
         comment -> Nullable<Text>,
@@ -30,7 +30,7 @@ table! {
         kind -> Text,
         state -> Text,
         doc_id -> Text,
-        date -> Text,
+        doc_date -> Text,
         amount_cents -> Integer,
         account -> Nullable<Text>,
         tags -> Text,
@@ -43,7 +43,7 @@ table! {
     invoices (doc_id) {
         doc_id -> Text,
         kind -> Text,
-        date -> Text,
+        doc_date -> Text,
         amount_cents -> Integer,
         currency -> Text,
         tax_code -> Text,

@@ -104,7 +104,7 @@ pub async fn new_invoice(
 
     let invoice = Invoice {
         doc_id: "".to_string(), // FIXME
-        date: "".to_string(), // FIXME today
+        doc_date: "".to_string(), // FIXME today
         kind: "invoice".to_string(),
         amount_cents: 123456,
         currency: "EUR".to_string(),

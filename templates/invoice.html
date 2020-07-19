@@ -181,7 +181,7 @@
       
       <div id="meta">
         <b>Nummer: {{ invoice.doc_id }}</b><br>
-        Datum: {{ invoice.date }}<br>
+        Datum: {{ invoice.doc_date }}<br>
         {% if invoice.replaces_id %}<b>Ersetzt: {{ invoice.replaces_id }}</b>{% endif %}<br>
         {% if invoice.order_id %}Bestellnummer: {{ invoice.order_id }}{% endif %}<br>
         <br>
@@ -234,7 +234,7 @@
           </td>
           <td class="sum">{{ p.amount_cents/100.0 }}</td>
         </tr>
-        {% endfor %}  
+        {% endfor %}
         
         <tr class="noborder sums-head">
           <td colspan="3"></td>

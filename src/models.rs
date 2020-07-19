@@ -6,17 +6,17 @@
 use crate::schema::*;
 
 
-#[derive(serde::Serialize, serde::Deserialize, Queryable, Insertable, Identifiable)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Queryable, Insertable, Identifiable)]
 pub struct BookingDoc {
     pub id: i32,
     pub booking_id: Option<String>,
     pub doc_id: Option<String>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Queryable, Insertable, Identifiable)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Queryable, Insertable, Identifiable)]
 pub struct Booking {
     pub id: String,
-    pub date: String,
+    pub booking_date: String,
     pub amount_cents: i32,
     pub details: String,
     pub comment: Option<String>,
@@ -30,14 +30,14 @@ pub struct Booking {
     pub updated_at: String,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Queryable, Insertable, Identifiable)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Queryable, Insertable, Identifiable)]
 #[primary_key(path)]
 pub struct Document {
     pub path: String,
     pub kind: String,
     pub state: String,
     pub doc_id: String,
-    pub date: String,
+    pub doc_date: String,
     pub amount_cents: i32,
     pub account: Option<String>,
     pub tags: String,
@@ -45,12 +45,12 @@ pub struct Document {
     pub updated_at: String,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Queryable, Insertable, Identifiable, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Queryable, Insertable, Identifiable)]
 #[primary_key(doc_id)]
 pub struct Invoice {
     pub doc_id: String,
     pub kind: String,
-    pub date: String,
+    pub doc_date: String,
     pub amount_cents: i32,
     pub currency: String,
     pub tax_code: String,

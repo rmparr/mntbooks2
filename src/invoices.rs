@@ -32,8 +32,10 @@ pub fn invoice_line_items(inv: &Invoice) -> Vec<LineItem> {
 pub fn invoice_new_id(conn: &SqliteConnection) -> String {
     let utc: DateTime<Utc> = Utc::now();
     let year = utc.year();
-    
-    let new_doc_id = match invoices.select(max(doc_id)).first::<Option<String>>(conn) {
+
+    let new_doc_id = match invoices.select(max(doc_id))
+        .filter(doc_date.like(format!("{}-%", year)))
+        .first::<Option<String>>(conn) {
         Ok(Some(i)) => {
             let parts:Vec<&str> = i.split('-').collect();
             let number = parts.last().unwrap().to_string().parse::<i32>().unwrap();

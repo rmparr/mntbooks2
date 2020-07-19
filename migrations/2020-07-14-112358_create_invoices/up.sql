@@ -1,7 +1,7 @@
 create table invoices (
   doc_id text not null primary key,
   kind text not null, -- invoice, quote, refund, reminder
-  date text not null,
+  doc_date text not null,
   amount_cents integer not null,
   currency text not null,
   tax_code text not null,
@@ -30,7 +30,7 @@ create table documents (
   kind text not null, -- invoice, quote, refund, reminder, letter
   state text not null, -- todo, defer, ...?
   doc_id text not null,
-  date text not null,
+  doc_date text not null,
   amount_cents integer not null,
   account text, -- was sales_account
   tags text not null,
@@ -40,7 +40,7 @@ create table documents (
 
 create table bookings (
   id text not null primary key,
-  date text not null,
+  booking_date text not null,
   amount_cents integer not null,
   details text not null,
   comment text,
