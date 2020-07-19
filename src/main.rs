@@ -75,6 +75,7 @@ async fn main() -> std::io::Result<()> {
             .service(get_invoices)
             .service(get_invoices_json)
             .service(new_invoice)
+            .service(copy_invoice)
             .service(get_invoice)
             .service(add_invoice)
             .service(add_invoice_json)

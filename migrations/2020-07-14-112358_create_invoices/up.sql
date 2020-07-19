@@ -1,14 +1,14 @@
--- Your SQL goes here
 create table invoices (
-  invoice_id varchar(64) not null primary key,
+  doc_id text not null primary key,
+  kind text not null, -- invoice, quote, refund, reminder
   date text not null,
-  amount_cents int not null,
+  amount_cents integer not null,
   currency text not null,
   tax_code text not null,
   order_id text,
   payment_method text not null,
   line_items text not null,
-  sales_account text not null,
+  account text not null, -- was sales_account
   customer_account text not null,
   customer_company text,
   customer_name text not null,
@@ -27,10 +27,12 @@ create table invoices (
 
 create table documents (
   path text not null primary key,
-  state text not null,
-  docid text not null,
+  kind text not null, -- invoice, quote, refund, reminder, letter
+  state text not null, -- todo, defer, ...?
+  doc_id text not null,
   date text not null,
-  sum integer not null,
+  amount_cents integer not null,
+  account text, -- was sales_account
   tags text not null,
   created_at text not null,
   updated_at text not null
@@ -47,7 +49,13 @@ create table bookings (
   tax_code text,
   debit_account text not null,
   credit_account text not null,
-  txn_id text,
+  txn_id text, -- transaction id in third-party system (bank, paypal)
   created_at text not null,
   updated_at text not null
+);
+
+create table booking_docs (
+  id integer not null primary key,
+  booking_id text,
+  doc_id text
 );

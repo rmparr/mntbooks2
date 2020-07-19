@@ -10,20 +10,25 @@
     {{ macros::nav(active="invoice_new") }}
     <header>
       <div id="recipient-addr" style="width:300px">
-        <input type="text" autofocus id="customer_account" class="account" placeholder="Customer Account"><br>
-        <input type="text" id="sales_account" class="account" placeholder="Sales Account" value="" onchange="recalc()"><br>
-        <input type="text" id="name" placeholder="Name" onchange="recalc()"><br>
-        <input type="text" id="company" placeholder="Company" onchange="recalc()"><br>
-        <input type="text" id="address_1" placeholder="Address Line 1" onchange="recalc()"><br>
-        <input type="text" id="address_2" placeholder="Address Line 2" onchange="recalc()"><br>
-        <input type="text" id="zip" placeholder="ZIP" style="width:30%" onchange="recalc()">
-        <input type="text" id="city" placeholder="City" style="width:61%" onchange="recalc()"><br>
-        <input type="text" id="state" placeholder="State" onchange="recalc()"><br>
-        <input type="text" id="country" placeholder="DE" onchange="recalc()">
+        <input type="text" id="sales_account" class="account" placeholder="Sales Account" value="{{invoice.account}}" onchange="recalc()"><br>
+        <input type="text" autofocus id="customer_account" class="account" placeholder="Customer Account"  value="{{invoice.customer_account}}"><br>
+        <input type="text" id="name" placeholder="Name" value="{{invoice.customer_name}}" onchange="recalc()"><br>
+        <input type="text" id="company" placeholder="Company" value="{{invoice.customer_company}}" onchange="recalc()"><br>
+        <input type="text" id="address_1" placeholder="Address Line 1" value="{{invoice.customer_address_1}}" onchange="recalc()"><br>
+        <input type="text" id="address_2" placeholder="Address Line 2" value="{{invoice.customer_address_2}}" onchange="recalc()"><br>
+        <input type="text" id="zip" placeholder="ZIP" value="{{invoice.customer_zip}}" style="width:30%" onchange="recalc()">
+        <input type="text" id="city" placeholder="City" value="{{invoice.customer_city}}" style="width:61%" onchange="recalc()"><br>
+        <input type="text" id="state" placeholder="State" value="{{invoice.customer_state}}" onchange="recalc()"><br>
+        <input type="text" id="country" placeholder="DE" value="{{invoice.customer_country}}" onchange="recalc()">
       </div>
       
       <div id="meta">
-        <span>Invoice ID:</span> <input type="text" id="iid" placeholder="automatic"><br>
+        <select id="kind" onchange="recalc()">
+          <option value="invoice" selected>Invoice</option>
+          <option value="quote">Quote</option>
+          <option value="refund">Refund</option>
+          <option value="delivery_note">Delivery Note</option>
+        </select> ID: <input type="text" id="iid" placeholder="automatic"><br>
         <span>Replaces ID:</span> <input type="text" id="replaces_id" onchange="recalc()"><br>
         <span>Date:</span> <input type="text" id="idate" value="" onchange="recalc()"><br>
         <span>Order ID:</span> <input type="text" id="ordernum" onchange="recalc()"><br>
@@ -42,29 +47,6 @@
       </div>
     </header>
 
-    <!--
-<form method="POST" action="http://localhost:8080/invoices">
-  <input type="text" name="invoice_id" value="2020-0201">
-  <input type="text" name="date" value="2020-07-15">
-  <input type="text" name="amount_cents" value="123456">
-  <input type="text" name="currency" value="EUR">
-  <input type="text" name="tax_code" value="EU16">
-  <input type="text" name="payment_method" value="SEPA">
-  <input type="text" name="line_items" value="[]">
-  <input type="text" name="sales_account" value="sales:1">
-  <input type="text" name="customer_account" value="customer:1">
-  <input type="text" name="customer_name" value="Mhm Hm">
-  <input type="text" name="customer_address_1" value="Fehlerstr. 8">
-  <input type="text" name="customer_zip" value="12161">
-  <input type="text" name="customer_city" value="Berlin">
-  <input type="text" name="customer_country" value="DE">
-  <input type="text" name="vat_included" value="y">
-  <input type="text" name="created_at" value="2020-07-15">
-  <input type="text" name="updated_at" value="2020-07-15">
-  <input type="submit">
-</form>
--->
-
     <table>
       <thead>
         <tr>
@@ -78,16 +60,19 @@
       <tfoot>
       </tfoot>
       <tbody id="positions">
-        <tr id="position-1">
-          <td class="pos"><span id="position-1-id">1</span></td>
-          <td class="amount"><input id="position-1-amount" type="number" value="1" style="width:50%" onchange="recalc()" onkeyup="recalc()" onclick="recalc()"></td>
-          <td class="price"><input id="position-1-price" type="text" value="" style="width:50%" onkeyup="recalc()" onchange="recalc()">€</td>
+        {% for item in line_items %}
+        <tr id="position-{{ loop.index }}">
+          <td class="pos"><span id="position-{{ loop.index }}-id">1</span></td>
+          <td class="amount"><input id="position-{{ loop.index }}-amount" type="number" value="{{item.quantity}}" style="width:50%" onchange="recalc()" onkeyup="recalc()" onclick="recalc()"></td>
+          <td class="price"><input id="position-{{ loop.index }}-price" type="text" value="{{item.price_cents/100.0}}" style="width:50%" onkeyup="recalc()" onchange="recalc()">€</td>
           <td>
-            <input id="position-1-title" type="text" name="title" style="width:100%; font-weight: bold" onchange="recalc()">
-            <input id="position-1-description" type="text" name="description" style="width:100%" onchange="recalc()">
+            <input id="position-{{ loop.index }}-sku" type="text" name="sku" value="{{item.sku}}" placeholder="SKU" style="width:20%; font-weight: bold" onchange="recalc()">
+            <input id="position-{{ loop.index }}-title" type="text" name="title" value="{{item.title}}" placeholder="Title" style="width:70%; font-weight: bold" onchange="recalc()">
+            <input id="position-{{ loop.index }}-description" type="text" name="description" value="{{item.description}}" style="width:100%" onchange="recalc()">
           </td>
-          <td class="sum"><span id="position-1-sum">0</span> €</td>
+          <td class="sum"><span id="position-{{ loop.index }}-sum">0</span> €</td>
         </tr>
+        {% endfor %}
       </tbody>
       <tbody>
         <tr class="noborder sums-head">
@@ -143,6 +128,7 @@
       var row = document.getElementById(key)
       if (row) {
         numRows++;
+        var skuEl = document.getElementById(key+"-sku")
         var titleEl = document.getElementById(key+"-title")
         var descEl = document.getElementById(key+"-description")
         var amountEl = document.getElementById(key+"-amount")
@@ -154,6 +140,7 @@
         netTotal += parseFloat(sum)
         
         items.push({
+          sku: skuEl.value,
           title: titleEl.value,
           quantity: parseFloat(amountEl.value),
           price_cents: parseFloat(priceEl.value)*100,
@@ -186,13 +173,14 @@
     var paymentMethod = document.getElementById("payment-method").value
     
     bookRow = {
-      invoice_id: document.getElementById("iid").value,
+      doc_id: document.getElementById("iid").value,
+      kind: document.getElementById("kind").value,
       date: document.getElementById("idate").value,
-      amount_cents: grandTotal*100,
+      amount_cents: grandTotal*100, // FIXME
       currency: "EUR",
-      customer_account: document.getElementById("customer_account").value,
-      sales_account: document.getElementById("sales_account").value,
+      account: document.getElementById("sales_account").value,
       payment_method: paymentMethod,
+      customer_account: document.getElementById("customer_account").value,
       customer_company: document.getElementById("company").value,
       customer_name: document.getElementById("name").value,
       customer_address_1: document.getElementById("address_1").value,
@@ -234,14 +222,14 @@
   function finalize() {
     recalc()
     
-    var url = "../invoices.json"
+    var url = "/invoices.json"
     var xhr = new XMLHttpRequest()
     xhr.onreadystatechange = function() {
       if (xhr.readyState === 4) {
         console.log(xhr.response)
         try {
           var obj = JSON.parse(xhr.response)
-          alert("Invoice Created: "+obj.id)
+          alert("Invoice Created: "+obj.doc_id)
           location.href="/invoices"
         } catch (e) {
           alert("Sorry, an error occured: "+xhr.response)

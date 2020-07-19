@@ -180,9 +180,9 @@
       </div>
       
       <div id="meta">
-        <b>Rechnungsnummer: {{ invoice.invoice_id }}</b><br>
-        Rechnungsdatum: {{ invoice.date }}<br>
-        {% if invoice.replaces_id %}<b>Ersetzt Rechnung: {{ invoice.replaces_id }}</b>{% endif %}<br>
+        <b>Nummer: {{ invoice.doc_id }}</b><br>
+        Datum: {{ invoice.date }}<br>
+        {% if invoice.replaces_id %}<b>Ersetzt: {{ invoice.replaces_id }}</b>{% endif %}<br>
         {% if invoice.order_id %}Bestellnummer: {{ invoice.order_id }}{% endif %}<br>
         <br>
         Leistungsdatum entspricht Rechnungsdatum
@@ -197,7 +197,13 @@
     
     <div id="intro">
       <div id="intro-space"></div>
-      {% if invoice.replaces_id %}
+      {% if invoice.kind == "quote" %}
+      <h2>Angebot</h2>
+      {% elif invoice.kind == "delivery_note" %}
+      <h2>Lieferschein</h2>
+      {% elif invoice.kind == "refund" %}
+      <h2>Stornorechnung</h2>
+      {% elif invoice.replaces_id %}
       <h2>Korrekturrechnung</h2>
       {% else %}
       <h2>Rechnung</h2>
@@ -223,7 +229,7 @@
           <td class="amount">{{ p.quantity }}</td>
           <td class="price">{{ p.price_cents/100.0 }}</td>
           <td>
-            <h5>{{ p.title }}</h5>
+            <h5>{{ p.sku }} {{ p.title }}</h5>
             <p>{{ p.description }}</p>
           </td>
           <td class="sum">{{ p.amount_cents/100.0 }}</td>
@@ -258,8 +264,9 @@
         Mit freundlichen Grüßen
       </p>
       <p>
-        Lukas F. Hartmann<br>
-        Geschäftsführer
+        {% for line in signature_lines %}
+        {{ line }}<br>
+        {% endfor %}
       </p>
     </div>
   </body>

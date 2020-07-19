@@ -4,6 +4,7 @@ use diesel::sqlite::SqliteConnection;
 type DbPool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
 
 use crate::invoices;
+use crate::invoices::LineItem;
 use crate::models::Invoice;
 use crate::mntconfig::Config;
 
@@ -55,8 +56,9 @@ pub async fn get_invoice(
     ctx.insert("sender_address", &config.company_address);
     ctx.insert("legal_lines", &config.invoice_legal_lines);
     ctx.insert("bank_lines", &config.invoice_bank_lines);
+    ctx.insert("signature_lines", &config.invoice_signature_lines);
     ctx.insert("net_total", &0);
-    ctx.insert("tax_rate", &16);
+    ctx.insert("tax_rate", &16); // FIXME
     ctx.insert("tax_total", &0);
     ctx.insert("total", &0);
     ctx.insert("outro", &"".to_string());
@@ -98,7 +100,66 @@ pub async fn add_invoice_json(
 pub async fn new_invoice(
     tmpl: web::Data<tera::Tera>
 ) -> Result<HttpResponse, Error> {
-    let ctx = tera::Context::new();
+    let mut ctx = tera::Context::new();
+
+    let invoice = Invoice {
+        doc_id: "".to_string(), // FIXME
+        date: "".to_string(), // FIXME today
+        kind: "invoice".to_string(),
+        amount_cents: 123456,
+        currency: "EUR".to_string(),
+        tax_code: "EU16".to_string(), // FIXME
+        order_id: None,
+        payment_method: "SEPA".to_string(),
+        line_items: "[]".to_string(), // FIXME 1 empty row
+        account: "".to_string(),
+        customer_account: "".to_string(),
+        customer_company: None,
+        customer_name: "".to_string(),
+        customer_address_1: "".to_string(),
+        customer_address_2: None,
+        customer_zip: "".to_string(),
+        customer_city: "".to_string(),
+        customer_state: None,
+        customer_country: "".to_string(),
+        vat_included: "true".to_string(), // FIXME
+        replaces_id: None,
+        replaced_by_id: None,
+        created_at: "".to_string(),
+        updated_at: "".to_string()
+    };
+
+    let items:Vec<LineItem> = vec![LineItem {
+        sku: Some("".to_string()),
+        title: "".to_string(),
+        description: "".to_string(),
+        quantity: 1,
+        price_cents: 0,
+        amount_cents: 0
+    }];
+    
+    ctx.insert("invoice", &invoice);
+    ctx.insert("line_items", &items);
+    
+    let s = tmpl.render("invoice_new.html", &ctx)
+        .map_err(|_| error::ErrorInternalServerError("Template error"))
+        .unwrap();
+    
+    Ok(HttpResponse::Ok().content_type("text/html").body(s))
+}
+
+#[get("/invoices/{id}/copy")]
+pub async fn copy_invoice(
+    tmpl: web::Data<tera::Tera>,
+    pool: web::Data<DbPool>,
+    path: web::Path<(String,)>
+) -> Result<HttpResponse, Error> {
+    let conn = pool.get().expect("couldn't get db connection from pool");
+    let result = invoices::get_invoice_by_id(&conn, &path.0);
+    let mut ctx = tera::Context::new();
+
+    ctx.insert("invoice", &result);
+    ctx.insert("line_items", &invoices::invoice_line_items(&result));
     
     let s = tmpl.render("invoice_new.html", &ctx)
         .map_err(|_| error::ErrorInternalServerError("Template error"))

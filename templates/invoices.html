@@ -9,24 +9,31 @@
     <table>
       <tr>
         <th>ID</th>
+        <th>Kind</th>
         <th>Date</th>
         <th>Cur</th>
         <th>Amount</th>
-        <th>Customer Acc</th>
         <th>Sales Acc</th>
+        <th>Customer Acc</th>
+        <th>Company</th>
         <th class="details">Name</th>
         <th>Document</th>
       </tr>
       {% for i in invoices %}
       <tr>
-        <td>{{ i.invoice_id }}</td>
+        <td>{{ i.doc_id }}</td>
+        <td>{{ i.kind }}</td>
         <td>{{ i.date }}</td>
         <td>{{ i.currency }}</td>
         <td>{{ i.amount_cents/100.0 }}</td>
+        <td>{{ i.account }}</td>
         <td>{{ i.customer_account }}</td>
-        <td>{{ i.sales_account }}</td>
-        <td>{{ i.customer_company }} {{ i.customer_name }}</td>
-        <td><a href="/invoices/{{ i.invoice_id }}">HTML</a></td>
+        <td>{{ i.customer_company }}</td>
+        <td>{{ i.customer_name }}</td>
+        <td>
+          <a href="/invoices/{{ i.doc_id }}">HTML</a>
+          <a href="/invoices/{{ i.doc_id }}/copy">Copy</a>
+        </td>
       </tr>
       {% endfor %}
     </table>

@@ -5,7 +5,15 @@
 
 use crate::schema::*;
 
-#[derive(serde::Serialize, Queryable, Insertable, Identifiable)]
+
+#[derive(serde::Serialize, serde::Deserialize, Queryable, Insertable, Identifiable)]
+pub struct BookingDoc {
+    pub id: i32,
+    pub booking_id: Option<String>,
+    pub doc_id: Option<String>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Queryable, Insertable, Identifiable)]
 pub struct Booking {
     pub id: String,
     pub date: String,
@@ -22,23 +30,26 @@ pub struct Booking {
     pub updated_at: String,
 }
 
-#[derive(serde::Serialize, Queryable, Insertable, Identifiable)]
+#[derive(serde::Serialize, serde::Deserialize, Queryable, Insertable, Identifiable)]
 #[primary_key(path)]
 pub struct Document {
     pub path: String,
+    pub kind: String,
     pub state: String,
-    pub docid: String,
+    pub doc_id: String,
     pub date: String,
-    pub sum: i32,
+    pub amount_cents: i32,
+    pub account: Option<String>,
     pub tags: String,
     pub created_at: String,
     pub updated_at: String,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Queryable, Insertable, Identifiable)]
-#[primary_key(invoice_id)]
+#[primary_key(doc_id)]
 pub struct Invoice {
-    pub invoice_id: String,
+    pub doc_id: String,
+    pub kind: String,
     pub date: String,
     pub amount_cents: i32,
     pub currency: String,
@@ -46,7 +57,7 @@ pub struct Invoice {
     pub order_id: Option<String>,
     pub payment_method: String,
     pub line_items: String,
-    pub sales_account: String,
+    pub account: String,
     pub customer_account: String,
     pub customer_company: Option<String>,
     pub customer_name: String,

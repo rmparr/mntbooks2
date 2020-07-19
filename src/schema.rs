@@ -1,4 +1,12 @@
 table! {
+    booking_docs (id) {
+        id -> Integer,
+        booking_id -> Nullable<Text>,
+        doc_id -> Nullable<Text>,
+    }
+}
+
+table! {
     bookings (id) {
         id -> Text,
         date -> Text,
@@ -19,10 +27,12 @@ table! {
 table! {
     documents (path) {
         path -> Text,
+        kind -> Text,
         state -> Text,
-        docid -> Text,
+        doc_id -> Text,
         date -> Text,
-        sum -> Integer,
+        amount_cents -> Integer,
+        account -> Nullable<Text>,
         tags -> Text,
         created_at -> Text,
         updated_at -> Text,
@@ -30,8 +40,9 @@ table! {
 }
 
 table! {
-    invoices (invoice_id) {
-        invoice_id -> Text,
+    invoices (doc_id) {
+        doc_id -> Text,
+        kind -> Text,
         date -> Text,
         amount_cents -> Integer,
         currency -> Text,
@@ -39,7 +50,7 @@ table! {
         order_id -> Nullable<Text>,
         payment_method -> Text,
         line_items -> Text,
-        sales_account -> Text,
+        account -> Text,
         customer_account -> Text,
         customer_company -> Nullable<Text>,
         customer_name -> Text,
@@ -58,6 +69,7 @@ table! {
 }
 
 allow_tables_to_appear_in_same_query!(
+    booking_docs,
     bookings,
     documents,
     invoices,
