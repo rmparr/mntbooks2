@@ -81,8 +81,8 @@ pub async fn add_invoice(
 ) -> Result<HttpResponse, Error> {
     let conn = pool.get().expect("couldn't get db connection from pool");
 
-    invoices::create_invoice(&conn, &params);
-    Ok(HttpResponse::Ok().json(&*params))
+    let invoice = invoices::create_invoice(&conn, &params);
+    Ok(HttpResponse::Ok().json(&invoice))
 }
 
 #[post("/invoices.json")]
@@ -92,8 +92,8 @@ pub async fn add_invoice_json(
 ) -> Result<HttpResponse, Error> {
     let conn = pool.get().expect("couldn't get db connection from pool");
 
-    invoices::create_invoice(&conn, &params);
-    Ok(HttpResponse::Ok().json(&*params))
+    let invoice = invoices::create_invoice(&conn, &params);
+    Ok(HttpResponse::Ok().json(&invoice))
 }
 
 #[get("/invoices/new")]

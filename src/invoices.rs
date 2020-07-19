@@ -3,8 +3,10 @@ use diesel::sqlite::SqliteConnection;
 
 use crate::models::*;
 use crate::schema::invoices::dsl::*;
+use diesel::dsl::*;
 
 use std::process::Command;
+use chrono::prelude::*;
 
 // TODO: missing SKU in frontends
 // TODO: document + invoice should have a common interface (trait) so that
@@ -27,18 +29,42 @@ pub fn invoice_line_items(inv: &Invoice) -> Vec<LineItem> {
     items
 }
 
-pub fn create_invoice(conn: &SqliteConnection, new_invoice: &Invoice) {
+pub fn invoice_new_id(conn: &SqliteConnection) -> String {
+    let utc: DateTime<Utc> = Utc::now();
+    let year = utc.year();
+    
+    let new_doc_id = match invoices.select(max(doc_id)).first::<Option<String>>(conn) {
+        Ok(Some(i)) => {
+            let parts:Vec<&str> = i.split('-').collect();
+            let number = parts.last().unwrap().to_string().parse::<i32>().unwrap();
+            format!("{}-{:04}", year, number+1)
+        }
+        _ => format!("{}-0001", year)
+    };
+
+    new_doc_id
+}
+
+pub fn create_invoice(conn: &SqliteConnection, new_invoice: &Invoice) -> Invoice {
     // TODO: accept only a subset of data
     // TODO: auto-fill invoice id, updated_at, created_at
+
+    let new_id = invoice_new_id(conn);
+    let inv = Invoice {
+        doc_id: new_id,
+        ..(*new_invoice).clone()
+    };
     
-    let res = diesel::insert_into(invoices).values(new_invoice).execute(conn);
+    let res = diesel::insert_into(invoices).values(&inv).execute(conn);
 
     // TODO create pdf
     println!("create_invoice result: {:?}", res);
+
+    inv
 }
 
 // TODO update_invoice
-
+// FIXME arbitrary limit
 pub fn get_all_invoices(conn: &SqliteConnection) -> Vec<Invoice> {
     invoices.limit(1000).load::<Invoice>(conn).unwrap()
 }

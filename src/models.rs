@@ -45,7 +45,7 @@ pub struct Document {
     pub updated_at: String,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Queryable, Insertable, Identifiable)]
+#[derive(serde::Serialize, serde::Deserialize, Queryable, Insertable, Identifiable, Clone)]
 #[primary_key(doc_id)]
 pub struct Invoice {
     pub doc_id: String,
