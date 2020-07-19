@@ -1,0 +1,34 @@
+{% import "macros.html" as macros %}
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="/css/style.css"></link>
+  </head>
+  <body>
+    {{ macros::nav(active="bookings") }}
+    <table>
+      <tr>
+        <th>Date</th>
+        <th>Cur</th>
+        <th>Amount</th>
+        <th>Acc</th>
+        <th>&rarr; Acc</th>
+        <th class="details">Details</th>
+        <th>Documents</th>
+      </tr>
+      {% for b in bookings %}
+      <tr>
+        <td>{{ b.booking_date }}</td>
+        <td>{{ b.currency }}</td>
+        <td>{{ b.amount_cents/100.0 }}</td>
+        <td>{{ b.debit_account }}</td>
+        <td>{{ b.credit_account }}</td>
+        <td>{{ b.details }}</td>
+        <td>
+          {{ b.receipt_url }}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </body>
+</html>

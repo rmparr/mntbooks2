@@ -12,7 +12,6 @@ table! {
         booking_date -> Text,
         amount_cents -> Integer,
         details -> Text,
-        comment -> Nullable<Text>,
         currency -> Text,
         receipt_url -> Nullable<Text>,
         tax_code -> Nullable<Text>,
@@ -21,6 +20,7 @@ table! {
         txn_id -> Nullable<Text>,
         created_at -> Text,
         updated_at -> Text,
+        comment -> Nullable<Text>,
     }
 }
 

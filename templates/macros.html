@@ -5,6 +5,14 @@
       </span>
       
       <span>
+        {% if active == "bookings" %}
+        Book
+        {% else %}
+        <a href="/bookings">Book</a>
+        {% endif %}
+      </span>
+      
+      <span>
         {% if active == "invoices" %}
         Invoices
         {% else %}

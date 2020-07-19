@@ -43,7 +43,6 @@ create table bookings (
   booking_date text not null,
   amount_cents integer not null,
   details text not null,
-  comment text,
   currency text not null,
   receipt_url text,
   tax_code text,
@@ -51,7 +50,8 @@ create table bookings (
   credit_account text not null,
   txn_id text, -- transaction id in third-party system (bank, paypal)
   created_at text not null,
-  updated_at text not null
+  updated_at text not null,
+  comment text
 );
 
 create table booking_docs (

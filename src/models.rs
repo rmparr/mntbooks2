@@ -19,7 +19,6 @@ pub struct Booking {
     pub booking_date: String,
     pub amount_cents: i32,
     pub details: String,
-    pub comment: Option<String>,
     pub currency: String,
     pub receipt_url: Option<String>,
     pub tax_code: Option<String>,
@@ -28,6 +27,7 @@ pub struct Booking {
     pub txn_id: Option<String>,
     pub created_at: String,
     pub updated_at: String,
+    pub comment: Option<String>,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Queryable, Insertable, Identifiable)]

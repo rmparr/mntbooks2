@@ -15,10 +15,12 @@ use tera::Tera;
 
 mod models;
 mod schema;
+mod bookings;
 mod invoices;
 mod routes;
 mod mntconfig;
 
+use crate::routes::bookings::*;
 use crate::routes::invoices::*;
 use crate::models::Invoice;
 use crate::mntconfig::Config;
@@ -72,6 +74,7 @@ async fn main() -> std::io::Result<()> {
             .data(pool.clone())
             .data(mntconfig.clone())
             .wrap(middleware::Logger::default())
+            .service(get_bookings)
             .service(get_invoices)
             .service(get_invoices_json)
             .service(new_invoice)
