@@ -3,9 +3,9 @@ use diesel::r2d2::{self, ConnectionManager};
 use diesel::sqlite::SqliteConnection;
 type DbPool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
 
-use crate::invoices;
-use crate::invoices::{LineItem, utc_iso_date_string};
-use crate::models::Invoice;
+use crate::documents;
+use crate::documents::{LineItem, utc_iso_date_string};
+use crate::models::Document;
 use crate::mntconfig::Config;
 
 use chrono::prelude::*;
@@ -13,27 +13,31 @@ use chrono::prelude::*;
 // see: https://github.com/actix/examples/blob/master/diesel/src/main.rs
 
 #[get("/invoices.json")]
-pub async fn get_invoices_json(
+pub async fn get_documents_json(
     pool: web::Data<DbPool>,
 ) -> Result<HttpResponse, Error> {
     let conn = pool.get().expect("couldn't get db connection from pool");
 
-    let results = invoices::get_all_invoices(&conn);
+    let results = documents::get_all_documents(&conn);
     Ok(HttpResponse::Ok().json(results))
 }
 
 #[get("/invoices")]
-pub async fn get_invoices(
+pub async fn get_documents(
     tmpl: web::Data<tera::Tera>,
     pool: web::Data<DbPool>,
 ) -> Result<HttpResponse, Error> {
     let conn = pool.get().expect("couldn't get db connection from pool");
 
-    let results = invoices::get_all_invoices(&conn);
+    let results = documents::get_all_documents(&conn);
 
     let mut ctx = tera::Context::new();
     ctx.insert("invoices", &results);
     
+    //let s = match tmpl.render("invoices.html", &ctx) {
+    //    Ok(x) => x,
+    //    Err(e) => { println!("DEBUG {:?}", e); "sorry".to_string() }
+    //};
     let s = tmpl.render("invoices.html", &ctx)
         .map_err(|_| error::ErrorInternalServerError("Template error"))
         .unwrap();
@@ -42,7 +46,7 @@ pub async fn get_invoices(
 }
 
 #[get("/invoices/{id}")]
-pub async fn get_invoice(
+pub async fn get_document(
     tmpl: web::Data<tera::Tera>,
     pool: web::Data<DbPool>,
     config: web::Data<Config>,
@@ -50,11 +54,11 @@ pub async fn get_invoice(
 ) -> Result<HttpResponse, Error> {
     let conn = pool.get().expect("couldn't get db connection from pool");
     
-    let result = invoices::get_invoice_by_id(&conn, &path.0);
+    let result = documents::get_document_by_id(&conn, &path.0);
 
     let mut ctx = tera::Context::new();
     ctx.insert("invoice", &result);
-    ctx.insert("line_items", &invoices::invoice_line_items(&result));
+    ctx.insert("line_items", &documents::line_items(&result));
     ctx.insert("sender_address", &config.company_address);
     ctx.insert("legal_lines", &config.invoice_legal_lines);
     ctx.insert("bank_lines", &config.invoice_bank_lines);
@@ -77,54 +81,56 @@ pub async fn get_invoice(
 }
 
 #[post("/invoices")]
-pub async fn add_invoice(
+pub async fn add_document(
     pool: web::Data<DbPool>,
-    params: web::Form<Invoice>
+    params: web::Form<Document>
 ) -> Result<HttpResponse, Error> {
     let conn = pool.get().expect("couldn't get db connection from pool");
 
-    let invoice = invoices::create_invoice(&conn, &params);
-    Ok(HttpResponse::Ok().json(&invoice))
+    let document = documents::create_invoice(&conn, &params);
+    Ok(HttpResponse::Ok().json(&document))
 }
 
 #[post("/invoices.json")]
-pub async fn add_invoice_json(
+pub async fn add_document_json(
     pool: web::Data<DbPool>,
-    params: web::Json<Invoice>
+    params: web::Json<Document>
 ) -> Result<HttpResponse, Error> {
     let conn = pool.get().expect("couldn't get db connection from pool");
 
-    let invoice = invoices::create_invoice(&conn, &params);
-    Ok(HttpResponse::Ok().json(&invoice))
+    let document = documents::create_invoice(&conn, &params);
+    Ok(HttpResponse::Ok().json(&document))
 }
 
 #[get("/invoices/new")]
-pub async fn new_invoice(
+pub async fn new_document(
     tmpl: web::Data<tera::Tera>
 ) -> Result<HttpResponse, Error> {
     let mut ctx = tera::Context::new();
 
-    let invoice = Invoice {
-        doc_id: "".to_string(), // filled in POST handler
+    let document= Document {
+        id: "_".to_string(), // filled in POST handler
+        invoice_id: Some("".to_string()), // filled in POST handler
+        quote_id: Some("".to_string()), // filled in POST handler
         doc_date: utc_iso_date_string(&Utc::now()),
         kind: "invoice".to_string(),
-        amount_cents: 123456,
-        currency: "EUR".to_string(),
-        tax_code: "EU16".to_string(), // FIXME
+        amount_cents: Some(123456),
+        currency: Some("EUR".to_string()),
+        tax_code: Some("EU16".to_string()), // FIXME
         order_id: None,
-        payment_method: "SEPA".to_string(),
-        line_items: "[]".to_string(), // FIXME 1 empty row
-        account: "".to_string(),
-        customer_account: "".to_string(),
+        payment_method: Some("SEPA".to_string()),
+        line_items: Some("[]".to_string()), // FIXME 1 empty row
+        account: Some("".to_string()),
+        customer_account: Some("".to_string()),
         customer_company: None,
-        customer_name: "".to_string(),
-        customer_address_1: "".to_string(),
+        customer_name: Some("".to_string()),
+        customer_address_1: Some("".to_string()),
         customer_address_2: None,
-        customer_zip: "".to_string(),
-        customer_city: "".to_string(),
+        customer_zip: Some("".to_string()),
+        customer_city: Some("".to_string()),
         customer_state: None,
-        customer_country: "".to_string(),
-        vat_included: "true".to_string(), // FIXME
+        customer_country: Some("".to_string()),
+        vat_included: Some("true".to_string()), // FIXME
         replaces_id: None,
         replaced_by_id: None,
         created_at: utc_iso_date_string(&Utc::now()),
@@ -140,7 +146,7 @@ pub async fn new_invoice(
         amount_cents: 0
     }];
     
-    ctx.insert("invoice", &invoice);
+    ctx.insert("invoice", &document);
     ctx.insert("line_items", &items);
     
     let s = tmpl.render("invoice_new.html", &ctx)
@@ -151,23 +157,23 @@ pub async fn new_invoice(
 }
 
 #[get("/invoices/{id}/copy")]
-pub async fn copy_invoice(
+pub async fn copy_document(
     tmpl: web::Data<tera::Tera>,
     pool: web::Data<DbPool>,
     path: web::Path<(String,)>
 ) -> Result<HttpResponse, Error> {
     let conn = pool.get().expect("couldn't get db connection from pool");
-    let result = invoices::get_invoice_by_id(&conn, &path.0);
+    let result = documents::get_document_by_id(&conn, &path.0);
     let mut ctx = tera::Context::new();
 
-    let inv = Invoice {
-        doc_id: "".to_string(),
+    let inv = Document {
+        invoice_id: Some("".to_string()),
         doc_date: utc_iso_date_string(&Utc::now()),
         ..result.clone()
     };
 
     ctx.insert("invoice", &inv);
-    ctx.insert("line_items", &invoices::invoice_line_items(&result));
+    ctx.insert("line_items", &documents::line_items(&result));
     
     let s = tmpl.render("invoice_new.html", &ctx)
         .map_err(|_| error::ErrorInternalServerError("Template error"))

@@ -2,8 +2,9 @@ use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 
 use crate::models::*;
-use crate::schema::invoices::dsl::*;
+use crate::schema::documents::dsl::*;
 use diesel::dsl::*;
+use uuid::Uuid;
 
 use std::process::Command;
 use chrono::prelude::*;
@@ -29,16 +30,22 @@ pub struct LineItem {
     pub amount_cents: i32
 }
 
-pub fn invoice_line_items(inv: &Invoice) -> Vec<LineItem> {
-    let items:Vec<LineItem> = serde_json::from_str(&inv.line_items).unwrap();
+pub fn line_items(inv: &Document) -> Vec<LineItem> {
+    let mut items:Vec<LineItem> = Vec::new();
+    match &inv.line_items {
+        Some(items_str) => {
+            let i:Vec<LineItem> = serde_json::from_str(items_str).unwrap();
+            items.extend(i);
+        }
+        None => ()
+    }
     items
 }
 
-pub fn invoice_new_id(conn: &SqliteConnection) -> String {
+pub fn new_invoice_id(conn: &SqliteConnection) -> String {
     let utc: DateTime<Utc> = Utc::now();
     let year = utc.year();
-
-    let new_doc_id = match invoices.select(max(doc_id))
+    let new_invoice_id = match documents.select(max(invoice_id))
         .filter(doc_date.like(format!("{}-%", year)))
         .first::<Option<String>>(conn) {
         Ok(Some(i)) => {
@@ -49,19 +56,20 @@ pub fn invoice_new_id(conn: &SqliteConnection) -> String {
         _ => format!("{}-0001", year)
     };
 
-    new_doc_id
+    new_invoice_id
 }
 
-pub fn create_invoice(conn: &SqliteConnection, new_invoice: &Invoice) -> Invoice {
-    let new_id = invoice_new_id(conn);
-    let inv = Invoice {
-        doc_id: new_id,
+pub fn create_invoice(conn: &SqliteConnection, new_document: &Document) -> Document {
+    let new_invoice_id = new_invoice_id(conn);
+    let inv = Document {
+        id: Uuid::new_v4().to_string(),
+        invoice_id: Some(new_invoice_id),
         updated_at: utc_iso_date_string(&Utc::now()),
         created_at: utc_iso_date_string(&Utc::now()),
-        ..(*new_invoice).clone()
+        ..(*new_document).clone()
     };
     
-    let res = diesel::insert_into(invoices).values(&inv).execute(conn);
+    let res = diesel::insert_into(documents).values(&inv).execute(conn);
     println!("create_invoice result: {:?}", res);
 
     inv
@@ -69,10 +77,10 @@ pub fn create_invoice(conn: &SqliteConnection, new_invoice: &Invoice) -> Invoice
 
 // TODO update_invoice
 // FIXME arbitrary limit
-pub fn get_all_invoices(conn: &SqliteConnection) -> Vec<Invoice> {
-    invoices.limit(1000).load::<Invoice>(conn).unwrap()
+pub fn get_all_documents(conn: &SqliteConnection) -> Vec<Document> {
+    documents.limit(1000).load::<Document>(conn).unwrap()
 }
 
-pub fn get_invoice_by_id(conn: &SqliteConnection, id: &String) -> Invoice {
-    invoices.find(id).first(conn).unwrap()
+pub fn get_document_by_id(conn: &SqliteConnection, uuid: &String) -> Document {
+    documents.find(uuid).first(conn).unwrap()
 }

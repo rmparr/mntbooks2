@@ -16,13 +16,13 @@ use tera::Tera;
 mod models;
 mod schema;
 mod bookings;
-mod invoices;
+mod documents;
 mod routes;
 mod mntconfig;
 
 use crate::routes::bookings::*;
 use crate::routes::invoices::*;
-use crate::models::Invoice;
+use crate::models::Document;
 use crate::mntconfig::Config;
 
 fn json_error_handler(err: error::JsonPayloadError, _req: &HttpRequest) -> error::Error {
@@ -75,17 +75,17 @@ async fn main() -> std::io::Result<()> {
             .data(mntconfig.clone())
             .wrap(middleware::Logger::default())
             .service(get_bookings)
-            .service(get_invoices)
-            .service(get_invoices_json)
-            .service(new_invoice)
-            .service(copy_invoice)
-            .service(get_invoice)
-            .service(add_invoice)
-            .service(add_invoice_json)
+            .service(get_documents)
+            .service(get_documents_json)
+            .service(new_document)
+            .service(copy_document)
+            .service(get_document)
+            .service(add_document)
+            .service(add_document_json)
             .service(Files::new("/css", "static/css/"))
             .service(Files::new("/js", "static/js/"))
             .service(Files::new("/img", "static/img/"))
-            .app_data(web::Json::<Invoice>::configure(|cfg| {
+            .app_data(web::Json::<Document>::configure(|cfg| {
                 cfg.error_handler(json_error_handler)
             }))
     })

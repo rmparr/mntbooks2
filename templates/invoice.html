@@ -180,7 +180,7 @@
       </div>
       
       <div id="meta">
-        <b>Nummer: {{ invoice.doc_id }}</b><br>
+        <b>Nummer: {{ invoice.invoice_id }}</b><br>
         Datum: {{ invoice.doc_date }}<br>
         {% if invoice.replaces_id %}<b>Ersetzt: {{ invoice.replaces_id }}</b>{% endif %}<br>
         {% if invoice.order_id %}Bestellnummer: {{ invoice.order_id }}{% endif %}<br>
