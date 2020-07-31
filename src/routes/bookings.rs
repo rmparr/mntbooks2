@@ -1,4 +1,4 @@
-use actix_web::{error, get, post, web, Error, HttpResponse};
+use actix_web::{error, get, web, Error, HttpResponse};
 use diesel::r2d2::{self, ConnectionManager};
 use diesel::sqlite::SqliteConnection;
 type DbPool = r2d2::Pool<ConnectionManager<SqliteConnection>>;

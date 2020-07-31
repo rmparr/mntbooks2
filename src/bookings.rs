@@ -3,7 +3,6 @@ use diesel::sqlite::SqliteConnection;
 
 use crate::models::*;
 use crate::schema::bookings::dsl::*;
-use diesel::dsl::*;
 
 #[derive(serde::Deserialize)]
 pub struct Query {

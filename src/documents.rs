@@ -6,7 +6,6 @@ use crate::schema::documents::dsl::*;
 use diesel::dsl::*;
 use uuid::Uuid;
 
-use std::process::Command;
 use chrono::prelude::*;
 
 // TODO: missing SKU in frontends

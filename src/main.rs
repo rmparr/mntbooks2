@@ -7,7 +7,7 @@ extern crate diesel;
 
 use diesel::sqlite::SqliteConnection;
 
-use actix_web::{error, get, middleware, post, web, App, Error, FromRequest, HttpRequest, HttpResponse, HttpServer};
+use actix_web::{error, middleware, web, App, FromRequest, HttpRequest, HttpResponse, HttpServer};
 use actix_files::Files;
 use diesel::r2d2::{self, ConnectionManager};
 
