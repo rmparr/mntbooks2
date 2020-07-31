@@ -51,7 +51,8 @@ create table bookings (
   txn_id text, -- transaction id in third-party system (bank, paypal)
   created_at text not null,
   updated_at text not null,
-  comment text
+  comment text,
+  done boolean
 );
 
 create table booking_docs (

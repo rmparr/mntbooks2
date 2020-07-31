@@ -21,6 +21,7 @@ table! {
         created_at -> Text,
         updated_at -> Text,
         comment -> Nullable<Text>,
+        done -> Nullable<Bool>,
     }
 }
 

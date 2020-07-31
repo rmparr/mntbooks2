@@ -28,6 +28,7 @@ pub struct Booking {
     pub created_at: String,
     pub updated_at: String,
     pub comment: Option<String>,
+    pub done: Option<bool>,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Queryable, Insertable, Identifiable)]
