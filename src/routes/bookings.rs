@@ -20,7 +20,7 @@ pub async fn get_bookings(
     ctx.insert("bookings", &results);
     
     let s = tmpl.render("bookings.html", &ctx)
-        .map_err(|_| error::ErrorInternalServerError("Template error"))
+        .map_err(|e| error::ErrorInternalServerError(format!("Template error: {:?}", e)))
         .unwrap();
     
     Ok(HttpResponse::Ok().content_type("text/html").body(s))

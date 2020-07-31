@@ -34,12 +34,8 @@ pub async fn get_documents(
     let mut ctx = tera::Context::new();
     ctx.insert("invoices", &results);
     
-    //let s = match tmpl.render("invoices.html", &ctx) {
-    //    Ok(x) => x,
-    //    Err(e) => { println!("DEBUG {:?}", e); "sorry".to_string() }
-    //};
     let s = tmpl.render("invoices.html", &ctx)
-        .map_err(|_| error::ErrorInternalServerError("Template error"))
+        .map_err(|e| error::ErrorInternalServerError(format!("Template error: {:?}", e)))
         .unwrap();
     
     Ok(HttpResponse::Ok().content_type("text/html").body(s))
@@ -150,7 +146,7 @@ pub async fn new_document(
     ctx.insert("line_items", &items);
     
     let s = tmpl.render("invoice_new.html", &ctx)
-        .map_err(|_| error::ErrorInternalServerError("Template error"))
+        .map_err(|e| error::ErrorInternalServerError(format!("Template error: {:?}", e)))
         .unwrap();
     
     Ok(HttpResponse::Ok().content_type("text/html").body(s))
@@ -176,7 +172,7 @@ pub async fn copy_document(
     ctx.insert("line_items", &documents::line_items(&result));
     
     let s = tmpl.render("invoice_new.html", &ctx)
-        .map_err(|_| error::ErrorInternalServerError("Template error"))
+        .map_err(|e| error::ErrorInternalServerError(format!("Template error: {:?}", e)))
         .unwrap();
     
     Ok(HttpResponse::Ok().content_type("text/html").body(s))
