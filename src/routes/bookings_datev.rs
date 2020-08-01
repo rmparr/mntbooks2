@@ -1,11 +1,13 @@
 use actix_web::{get, web, Error, HttpResponse};
 use diesel::r2d2::{self, ConnectionManager};
+use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 type DbPool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
 
-use crate::bookings;
-use crate::models::Booking;
 use crate::mntconfig::Config;
+use crate::bookings;
+use crate::models::*;
+use crate::schema::booking_docs::dsl::*;
 
 use csv::{WriterBuilder,QuoteStyle};
 
@@ -223,68 +225,81 @@ pub async fn get_bookings_datev_csv(
         } else {
             true
         };
-        
+
+        let docs:Vec<BookingDoc> = booking_docs.limit(1).filter(booking_id.eq(&booking.id))
+            .load::<BookingDoc>(&conn).unwrap();
+
         if !skip {
-            // find account that is not the asset side
-            let acc_str = if booking.credit_account.starts_with("assets:") {
-                booking.debit_account.clone()
-            } else {
-                booking.credit_account.clone()
-            };
+            if let Some(booking_doc) = docs.first() {
+                // find account that is not the asset side
+                let acc_str = if booking.credit_account.starts_with("assets:") {
+                    booking.debit_account.clone()
+                } else {
+                    booking.credit_account.clone()
+                };
 
-            if booking.debit_account.starts_with("sales:") {
-                soll_haben = "H".to_string();
-            }
-            
-            // FIXME this should actually never happen. data error?
-            if amt<0 || cents<0 {
-                amt = -amt;
-                cents = -cents;
-                soll_haben = "H".to_string();
-                // TODO: generalumkehr?
-            }
-
-            let mut account1 = "9999".to_string();
-            let mut account2 = "99999".to_string();
-
-            for (match_str, target_acc) in config.datev_account1_map.iter() {
-                if acc_str.contains(match_str) {
-                    account1 = target_acc.clone();
+                if booking.debit_account.starts_with("sales:") {
+                    soll_haben = "H".to_string();
                 }
-            }
 
-            // TODO include documentimage's tags in this search
-            for (match_str, target_acc) in config.datev_account2_map.iter() {
-                if acc_str.contains(match_str) {
-                    account2 = target_acc.clone();
+                // FIXME this should actually never happen. data error?
+                if amt<0 || cents<0 {
+                    amt = -amt;
+                    cents = -cents;
+                    soll_haben = "H".to_string();
+                    // TODO: generalumkehr?
                 }
+
+                let mut account1 = "9999".to_string();
+                let mut account2 = "99999".to_string();
+
+                for (match_str, target_acc) in config.datev_account1_map.iter() {
+                    if acc_str.contains(match_str) {
+                        account1 = target_acc.clone();
+                    }
+                }
+
+                // TODO include documentimage's tags in this search
+                for (match_str, target_acc) in config.datev_account2_map.iter() {
+                    if acc_str.contains(match_str) {
+                        account2 = target_acc.clone();
+                    }
+                }
+
+                let mon = &booking.booking_date[5..7];
+                let day = &booking.booking_date[8..10];
+
+                let belegfeld = match &booking_doc.doc_id {
+                    Some(d) => {
+                        let parts:Vec<&str> = d.split(',').collect();
+                        parts.first().unwrap().to_string()
+                    }
+                    _ => "".to_string()
+                };
+
+                let d = DatevBooking {
+                    umsatz: format!("{},{:02}",amt,cents),
+                    wkz: booking.currency,
+
+                    konto: account1,
+                    gegenkonto: account2,
+                    soll_haben: soll_haben,
+
+                    belegfeld_1: belegfeld,
+                    belegdatum: format!("{:02}{:02}",day,mon),
+                    buchungstext: acc_str.clone(),
+
+                    ust_schluessel: "0".to_string(),
+                    erloeskonto: "0".to_string(),
+                    herkunft_kz: "RE".to_string(),
+                    skontosperre: "0".to_string(),
+                    festschreibung: "0".to_string(),
+                    generalumkehr: "0".to_string(),
+                    ..Default::default()
+                };
+
+                wtr.serialize(d).unwrap();
             }
-
-            let mon = &booking.booking_date[5..7];
-            let day = &booking.booking_date[8..10];
-            
-            let d = DatevBooking {
-                umsatz: format!("{},{:02}",amt,cents),
-                wkz: booking.currency,
-
-                konto: account1,
-                gegenkonto: account2,
-                soll_haben: soll_haben,
-
-                belegfeld_1: booking.id, // TODO: bookingdocument -> doc_id
-                belegdatum: format!("{:02}{:02}",day,mon),
-                buchungstext: acc_str.clone(),
-
-                ust_schluessel: "0".to_string(),
-                erloeskonto: "0".to_string(),
-                herkunft_kz: "RE".to_string(),
-                skontosperre: "0".to_string(),
-                festschreibung: "0".to_string(),
-                generalumkehr: "0".to_string(),
-                ..Default::default()
-            };
-
-            wtr.serialize(d).unwrap();
         }
     }
     let data = String::from_utf8(wtr_header.into_inner().unwrap()).unwrap() + &(String::from_utf8(wtr.into_inner().unwrap()).unwrap());

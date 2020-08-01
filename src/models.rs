@@ -5,7 +5,6 @@
 
 use crate::schema::*;
 
-
 #[derive(serde::Serialize, serde::Deserialize, Clone, Queryable, Insertable, Identifiable)]
 pub struct BookingDoc {
     pub id: i32,
