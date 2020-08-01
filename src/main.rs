@@ -21,6 +21,7 @@ mod routes;
 mod mntconfig;
 
 use crate::routes::bookings::*;
+use crate::routes::bookings_datev::*;
 use crate::routes::invoices::*;
 use crate::models::Document;
 use crate::mntconfig::Config;
@@ -75,6 +76,7 @@ async fn main() -> std::io::Result<()> {
             .data(mntconfig.clone())
             .wrap(middleware::Logger::default())
             .service(get_bookings)
+            .service(get_bookings_datev_csv)
             .service(get_documents)
             .service(get_documents_json)
             .service(new_document)
