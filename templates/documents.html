@@ -9,7 +9,6 @@
     <table>
       <tr>
         <th>ID</th>
-        <th>Kind</th>
         <th>Date</th>
         <th>Cur</th>
         <th>Amount</th>
@@ -21,8 +20,7 @@
       </tr>
       {% for d in documents %}
       <tr>
-        <td>{{ d.serial_id }}</td>
-        <td>{{ d.kind }}</td>
+        <td>{{ d.kind }}-{{ d.serial_id }}</td>
         <td>{{ d.doc_date }}</td>
         <td>{{ d.currency }}</td>
         <td>{{ d.amount_cents/100.0 }}</td>
