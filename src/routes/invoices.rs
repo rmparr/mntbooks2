@@ -83,7 +83,7 @@ pub async fn add_document(
 ) -> Result<HttpResponse, Error> {
     let conn = pool.get().expect("couldn't get db connection from pool");
 
-    let document = documents::create_invoice(&conn, &params);
+    let document = documents::create_document(&conn, &params);
     Ok(HttpResponse::Ok().json(&document))
 }
 
@@ -94,7 +94,7 @@ pub async fn add_document_json(
 ) -> Result<HttpResponse, Error> {
     let conn = pool.get().expect("couldn't get db connection from pool");
 
-    let document = documents::create_invoice(&conn, &params);
+    let document = documents::create_document(&conn, &params);
     Ok(HttpResponse::Ok().json(&document))
 }
 
@@ -106,8 +106,7 @@ pub async fn new_document(
 
     let document= Document {
         id: "_".to_string(), // filled in POST handler
-        invoice_id: Some("".to_string()), // filled in POST handler
-        quote_id: Some("".to_string()), // filled in POST handler
+        serial_id: Some("".to_string()), // filled in POST handler
         doc_date: utc_iso_date_string(&Utc::now()),
         kind: "invoice".to_string(),
         amount_cents: Some(123456),
@@ -163,13 +162,15 @@ pub async fn copy_document(
     let mut ctx = tera::Context::new();
 
     let inv = Document {
-        invoice_id: Some("".to_string()),
+        serial_id: Some("".to_string()),
         doc_date: utc_iso_date_string(&Utc::now()),
         ..result.clone()
     };
 
     ctx.insert("invoice", &inv);
     ctx.insert("line_items", &documents::line_items(&result));
+    
+    // TODO Make .kind selected in template somehow?
     
     let s = tmpl.render("invoice_new.html", &ctx)
         .map_err(|e| error::ErrorInternalServerError(format!("Template error: {:?}", e)))

@@ -29,7 +29,7 @@
           <option value="refund">Refund</option>
 	  <option value="delivery_note">Delivery Note</option><br>
         </select> ID: <input type="text" id="id" placeholder="automatic"><br>
-        </select> Invoice ID: <input type="text" id="iid" placeholder="automatic"><br>
+        </select> Serial ID: <input type="text" id="serial_id" placeholder="automatic"><br>
         <span>Replaces ID:</span> <input type="text" id="replaces_id" onchange="recalc()"><br>
         <span>Date:</span> <input type="text" id="idate" value="{{invoice.doc_date}}" onchange="recalc()"><br>
         <span>Order ID:</span> <input type="text" id="ordernum" onchange="recalc()"><br>
@@ -175,7 +175,7 @@
     
     bookRow = {
       id: document.getElementById("id").value,
-      invoice_id: document.getElementById("iid").value,
+      serial_id: document.getElementById("serial_id").value,
       kind: document.getElementById("kind").value,
       doc_date: document.getElementById("idate").value,
       amount_cents: grandTotal*100, // FIXME
@@ -231,7 +231,7 @@
         console.log(xhr.response)
         try {
           var obj = JSON.parse(xhr.response)
-          alert("Invoice Created: "+obj.invoice_id)
+          alert("Invoice Created: "+obj.kind+"-"+obj.serial_id)
           location.href="/invoices"
         } catch (e) {
           alert("Sorry, an error occured: "+xhr.response)

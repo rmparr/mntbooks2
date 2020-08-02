@@ -5,9 +5,8 @@ create table documents (
   amount_cents integer,
   currency text,
   tax_code text,
-  invoice_id text, -- set by system
+  serial_id text, -- set by system
   order_id text,
-  quote_id text,
   payment_method text,
   line_items text,
   customer_account text,

@@ -5,6 +5,7 @@
 
 use crate::schema::*;
 
+
 #[derive(serde::Serialize, serde::Deserialize, Clone, Queryable, Insertable, Identifiable)]
 pub struct BookingDoc {
     pub id: i32,
@@ -51,9 +52,8 @@ pub struct Document {
     pub amount_cents: Option<i32>,
     pub currency: Option<String>,
     pub tax_code: Option<String>,
-    pub invoice_id: Option<String>,
+    pub serial_id: Option<String>,
     pub order_id: Option<String>,
-    pub quote_id: Option<String>,
     pub payment_method: Option<String>,
     pub line_items: Option<String>,
     pub customer_account: Option<String>,

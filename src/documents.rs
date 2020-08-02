@@ -40,15 +40,14 @@ pub fn line_items(inv: &Document) -> Vec<LineItem> {
     items
 }
 
-pub fn new_invoice_id(conn: &SqliteConnection) -> String {
+pub fn new_doc_id(conn: &SqliteConnection, doc_kind: &str) -> String {
     let utc: DateTime<Utc> = Utc::now();
     let year = utc.year();
-    // FIXME this may assign the same invoice ID to multiple documents
-    // as it only increments up from invoice IDs of those with a proper
-    // doc_date
-    let new_invoice_id = match documents.select(max(invoice_id))
+    // FIXME this may assign the same ID to multiple documents of same kind
+    // as it only increments up from IDs of docs with a proper  doc_date
+    let new_id = match documents.select(max(serial_id))
         .filter(doc_date.like(format!("{}-%", year)))
-        .filter(kind.eq("invoice"))
+        .filter(kind.eq(&doc_kind))
         .first::<Option<String>>(conn) {
         Ok(Some(i)) => {
             let parts:Vec<&str> = i.split('-').collect();
@@ -58,14 +57,14 @@ pub fn new_invoice_id(conn: &SqliteConnection) -> String {
         _ => format!("{}-0001", year)
     };
 
-    new_invoice_id
+    new_id
 }
 
-pub fn create_invoice(conn: &SqliteConnection, new_document: &Document) -> Document {
-    let new_invoice_id = new_invoice_id(conn);
+pub fn create_document(conn: &SqliteConnection, new_document: &Document) -> Document {
+    let new_doc_id = new_doc_id(conn, &new_document.kind);
     let inv = Document {
         id: Uuid::new_v4().to_string(),
-        invoice_id: Some(new_invoice_id),
+        serial_id: Some(new_doc_id),
         updated_at: utc_iso_date_string(&Utc::now()),
         created_at: utc_iso_date_string(&Utc::now()),
         ..(*new_document).clone()
