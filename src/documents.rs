@@ -9,10 +9,6 @@ use uuid::Uuid;
 use chrono::prelude::*;
 
 // TODO: missing SKU in frontends
-// TODO: document + invoice should have a common interface (trait) so that
-// they can be attached to bookings
-// like: date, sum, identifier, image (pdf/png/...) url
-// TODO: document is missing a kind
 
 // TODO move to a utility module
 pub fn utc_iso_date_string(utc: &DateTime<Utc>) -> String {
@@ -61,7 +57,7 @@ pub fn create_invoice(conn: &SqliteConnection, new_document: &Document) -> Docum
     let inv = Document {
         id: Uuid::new_v4().to_string(),
         invoice_id: Some(new_invoice_id),
-        updated_at: utc_iso_date_string(&Utc::now()),
+        updated_at: utc_iso_date_string(&Utc::now()), // FIXME missing time?
         created_at: utc_iso_date_string(&Utc::now()),
         ..(*new_document).clone()
     };
