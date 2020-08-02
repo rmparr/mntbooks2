@@ -12,4 +12,7 @@ select book.rowid, id, docid from book, documents where path=receipt_url and doc
 .output mntbooks-legacy-export-docimages.csv
 select path,path,"application/pdf",docid,tags,1,date,date from documents where docid is NOT NULL and docid is NOT "" and state="defer";
 
+.output mntbooks-legacy-export-documents.csv
+select id,"invoice",invoice_date,amount_cents,currency,tax_code,id,order_id,NULL,payment_method,line_items,customer_account,customer_company,customer_name,customer_address_1,customer_address_2,customer_zip,customer_city,customer_state,customer_country,vat_included,replaces_id,replaced_by_id,created_at,updated_at,sales_account from invoices;
+
 .quit
