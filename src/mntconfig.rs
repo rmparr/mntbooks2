@@ -6,6 +6,8 @@ pub struct Config {
     pub invoice_legal_lines: Vec<String>,
     pub invoice_bank_lines: Vec<String>,
     pub invoice_signature_lines: Vec<String>,
+    pub docstore_path: String,
+    pub datev_export_path: String,
     pub datev_advisor_id: String,
     pub datev_client_id: String,
     pub datev_account1_map: HashMap<String,String>,
