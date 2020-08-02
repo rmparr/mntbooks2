@@ -26,6 +26,9 @@ invoice_signature_lines = [
   "CFO"
 ]
 
+docstore_path = "./docstore"
+
+datev_export_path = "./datev-export"
 datev_advisor_id = "123456"
 datev_client_id = "24242"
 

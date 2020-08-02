@@ -10,10 +10,6 @@ use regex::Regex;
 use chrono::prelude::*;
 
 // TODO: missing SKU in frontends
-// TODO: document + invoice should have a common interface (trait) so that
-// they can be attached to bookings
-// like: date, sum, identifier, image (pdf/png/...) url
-// TODO: document is missing a kind
 
 // TODO move to a utility module
 pub fn utc_iso_date_string(utc: &DateTime<Utc>) -> String {
@@ -65,7 +61,7 @@ pub fn create_document(conn: &SqliteConnection, new_document: &Document) -> Docu
     let inv = Document {
         id: Uuid::new_v4().to_string(),
         serial_id: Some(new_doc_id),
-        updated_at: utc_iso_date_string(&Utc::now()),
+        updated_at: utc_iso_date_string(&Utc::now()), // FIXME missing time?
         created_at: utc_iso_date_string(&Utc::now()),
         ..(*new_document).clone()
     };

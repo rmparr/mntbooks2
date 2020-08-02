@@ -3,13 +3,20 @@ use diesel::r2d2::{self, ConnectionManager};
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 type DbPool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
+use std::path::Path;
+use std::fs;
+use std::io::prelude::*;
+use random_integer;
 
 use crate::mntconfig::Config;
 use crate::bookings;
 use crate::models::*;
 use crate::schema::booking_docs::dsl::*;
+use crate::schema::document_images::dsl::{document_images, doc_id as docimg_doc_id};
+use crate::documents::utc_iso_date_string;
 
 use csv::{WriterBuilder,QuoteStyle};
+use chrono::prelude::*;
 
 #[derive(serde::Serialize,Default)]
 struct DatevHeader {
@@ -179,7 +186,13 @@ pub async fn get_bookings_datev_csv(
     let conn = pool.get().expect("couldn't get db connection from pool");
 
     let bookings:Vec<Booking> = bookings::get_all_bookings(&conn, &q);
-    
+
+    let export_folder = Path::new(&config.datev_export_path.clone())
+        .join(format!("{}-{:04}", utc_iso_date_string(&Utc::now()), random_integer::random_u16(0,10000)));
+
+    fs::create_dir(&export_folder).unwrap();
+    fs::create_dir(&export_folder.join("Belege")).unwrap();
+
     let header1 = DatevHeader {
         datev_format: "EXTF".to_string(),
         version: "700".to_string(),
@@ -198,23 +211,23 @@ pub async fn get_bookings_datev_csv(
         wkz: "EUR".to_string(),
         ..Default::default()
     };
-    
+
     let mut wtr_header = WriterBuilder::new()
         .delimiter(b';')
         .has_headers(false)
         .quote_style(QuoteStyle::Always)
         .from_writer(vec![]);
-    
+
     wtr_header.serialize(header1).unwrap();
-    
+
     let mut wtr = WriterBuilder::new()
         .delimiter(b';')
         .has_headers(false)
         .quote_style(QuoteStyle::Always)
         .from_writer(vec![]);
-    
+
     wtr.write_record(["Umsatz (ohne Soll/Haben-Kz)","Soll/Haben-Kennzeichen","WKZ Umsatz","Kurs","Basis-Umsatz","WKZ Basis-Umsatz","Konto","Gegenkonto (ohne BU-Schlüssel)","BU-Schlüssel","Belegdatum","Belegfeld 1","Belegfeld 2","Skonto","Buchungstext","Postensperre","Diverse Adressnummer","Geschäftspartnerbank","Sachverhalt","Zinssperre","Beleglink","Beleginfo - Art 1","Beleginfo - Inhalt 1","Beleginfo - Art 2","Beleginfo - Inhalt 2","Beleginfo - Art 3","Beleginfo - Inhalt 3","Beleginfo - Art 4","Beleginfo - Inhalt 4","Beleginfo - Art 5","Beleginfo - Inhalt 5","Beleginfo - Art 6","Beleginfo - Inhalt 6","Beleginfo - Art 7","Beleginfo - Inhalt 7","Beleginfo - Art 8","Beleginfo - Inhalt 8","KOST1 - Kostenstelle","KOST2 - Kostenstelle","Kost-Menge","EU-Land u. UStID","EU-Steuersatz","Abw. Versteuerungsart","Sachverhalt L+L","Funktionsergänzung L+L","BU 49 Hauptfunktionstyp","BU 49 Hauptfunktionsnummer","BU 49 Funktionsergänzung","Zusatzinformation - Art 1","Zusatzinformation- Inhalt 1","Zusatzinformation - Art 2","Zusatzinformation- Inhalt 2","Zusatzinformation - Art 3","Zusatzinformation- Inhalt 3","Zusatzinformation - Art 4","Zusatzinformation- Inhalt 4","Zusatzinformation - Art 5","Zusatzinformation- Inhalt 5","Zusatzinformation - Art 6","Zusatzinformation- Inhalt 6","Zusatzinformation - Art 7","Zusatzinformation- Inhalt 7","Zusatzinformation - Art 8","Zusatzinformation- Inhalt 8","Zusatzinformation - Art 9","Zusatzinformation- Inhalt 9","Zusatzinformation - Art 10","Zusatzinformation- Inhalt 10","Zusatzinformation - Art 11","Zusatzinformation- Inhalt 11","Zusatzinformation - Art 12","Zusatzinformation- Inhalt 12","Zusatzinformation - Art 13","Zusatzinformation- Inhalt 13","Zusatzinformation - Art 14","Zusatzinformation- Inhalt 14","Zusatzinformation - Art 15","Zusatzinformation- Inhalt 15","Zusatzinformation - Art 16","Zusatzinformation- Inhalt 16","Zusatzinformation - Art 17","Zusatzinformation- Inhalt 17","Zusatzinformation - Art 18","Zusatzinformation- Inhalt 18","Zusatzinformation - Art 19","Zusatzinformation- Inhalt 19","Zusatzinformation - Art 20","Zusatzinformation- Inhalt 20","Stück","Gewicht","Zahlweise","Forderungsart","Veranlagungsjahr","Zugeordnete Fälligkeit","Skontotyp","Auftragsnummer","Buchungstyp (Anzahlungen)","USt-Schlüssel (Anzahlungen)","EU-Land (Anzahlungen)","Sachverhalt L+L (Anzahlungen)","EU-Steuersatz (Anzahlungen)","Erlöskonto (Anzahlungen)","Herkunft-Kz","Buchungs GUID","KOST-Datum","SEPA-Mandatsreferenz","Skontosperre","Gesellschaftername","Beteiligtennummer","Identifikationsnummer","Zeichnernummer","Postensperre bis","Bezeichnung SoBil-Sachverhalt","Kennzeichen SoBil-Buchung","Festschreibung","Leistungsdatum","Datum Zuord. Steuerperiode","Fälligkeit","Generalumkehr (GU)","Steuersatz","Land"].iter()).unwrap();
-    
+
     for booking in bookings {
         let mut soll_haben = "S".to_string();
         let mut amt = booking.amount_cents/100;
@@ -269,13 +282,16 @@ pub async fn get_bookings_datev_csv(
                 let mon = &booking.booking_date[5..7];
                 let day = &booking.booking_date[8..10];
 
-                let belegfeld = match &booking_doc.doc_id {
+                // TODO this is a workaround to deal with the legacy
+                // data where multiple doc image paths were just comma seperated
+                let booking_doc_id = match &booking_doc.doc_id {
                     Some(d) => {
                         let parts:Vec<&str> = d.split(',').collect();
                         parts.first().unwrap().to_string()
                     }
                     _ => "".to_string()
                 };
+                let belegfeld = booking_doc_id.replace("/","-");
 
                 let d = DatevBooking {
                     umsatz: format!("{},{:02}",amt,cents),
@@ -285,7 +301,7 @@ pub async fn get_bookings_datev_csv(
                     gegenkonto: account2,
                     soll_haben: soll_haben,
 
-                    belegfeld_1: belegfeld,
+                    belegfeld_1: belegfeld.clone(),
                     belegdatum: format!("{:02}{:02}",day,mon),
                     buchungstext: acc_str.clone(),
 
@@ -298,10 +314,38 @@ pub async fn get_bookings_datev_csv(
                     ..Default::default()
                 };
 
+                // TODO only output bookings where a document image was successfully copied?
                 wtr.serialize(d).unwrap();
+
+                // TODO create a unique folder per export
+                // copy the associated document image(s)
+                let docimages:Vec<DocumentImage> = document_images.limit(1).filter(docimg_doc_id.eq(&booking_doc_id))
+                    .load::<DocumentImage>(&conn).unwrap();
+
+                for di in docimages {
+                    let pdf_source = Path::new(&config.docstore_path.clone()).join(&di.pdf_path.clone());
+                    let pdf_dest = export_folder.join("Belege").join(format!("{}.pdf",belegfeld));
+
+                    match fs::copy(&pdf_source, &pdf_dest) {
+                        Err(e) => {
+                            println!("Error copying document {:?} -> {:?}: {:?}", pdf_source, pdf_dest, e);
+                        },
+                        _ => ()
+                    }
+                }
             }
         }
     }
     let data = String::from_utf8(wtr_header.into_inner().unwrap()).unwrap() + &(String::from_utf8(wtr.into_inner().unwrap()).unwrap());
+
+    // save the CSV to export folder
+    let csv_dest = export_folder.join(format!("EXTF_Buchungsstapel.csv"));
+    match fs::File::create(&csv_dest) {
+        Err(why) => panic!("couldn't create {:?}: {}", csv_dest, why),
+        Ok(mut file) => {
+            file.write_all(data.as_bytes()).unwrap();
+        }
+    };
+
     Ok(HttpResponse::Ok().content_type("text/plain").body(data))
 }
