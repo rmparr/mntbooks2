@@ -31,12 +31,10 @@ pub struct LineItem {
 
 pub fn line_items(inv: &Document) -> Vec<LineItem> {
     let mut items:Vec<LineItem> = Vec::new();
-    match &inv.line_items {
-        Some(items_str) => {
-            let i:Vec<LineItem> = serde_json::from_str(items_str).unwrap();
+    if let Some(items_str) = &inv.line_items {
+        if let Ok(i) = serde_json::from_str::<Vec<LineItem>>(items_str) {
             items.extend(i);
         }
-        None => ()
     }
     items
 }
