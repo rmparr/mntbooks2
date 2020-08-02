@@ -48,6 +48,7 @@ pub fn new_invoice_id(conn: &SqliteConnection) -> String {
     // doc_date
     let new_invoice_id = match documents.select(max(invoice_id))
         .filter(doc_date.like(format!("{}-%", year)))
+        .filter(kind.eq("invoice"))
         .first::<Option<String>>(conn) {
         Ok(Some(i)) => {
             let parts:Vec<&str> = i.split('-').collect();
@@ -73,7 +74,7 @@ pub fn create_invoice(conn: &SqliteConnection, new_document: &Document) -> Docum
     // TODO improve feedback to user providing bad input
     let re = Regex::new(r"^\d{4}-\d{2}-\d{2}$").unwrap();
     assert!(re.is_match(&inv.doc_date));
-    
+
     let res = diesel::insert_into(documents).values(&inv).execute(conn);
     println!("create_invoice result: {:?}", res);
 
