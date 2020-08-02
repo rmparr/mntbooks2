@@ -42,6 +42,9 @@ pub fn line_items(inv: &Document) -> Vec<LineItem> {
 pub fn new_invoice_id(conn: &SqliteConnection) -> String {
     let utc: DateTime<Utc> = Utc::now();
     let year = utc.year();
+    // FIXME this may assign the same invoice ID to multiple documents
+    // as it only increments up from invoice IDs of those with a proper
+    // doc_date
     let new_invoice_id = match documents.select(max(invoice_id))
         .filter(doc_date.like(format!("{}-%", year)))
         .first::<Option<String>>(conn) {
@@ -58,6 +61,8 @@ pub fn new_invoice_id(conn: &SqliteConnection) -> String {
 
 pub fn create_invoice(conn: &SqliteConnection, new_document: &Document) -> Document {
     let new_invoice_id = new_invoice_id(conn);
+    // TODO enforce field input formats, e.g. the date field can eat non-datey stuff
+    // which confuses the new_invoice_id algorithm, which relies on proper doc_ids
     let inv = Document {
         id: Uuid::new_v4().to_string(),
         invoice_id: Some(new_invoice_id),
