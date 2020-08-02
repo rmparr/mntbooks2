@@ -22,7 +22,7 @@ mod mntconfig;
 
 use crate::routes::bookings::*;
 use crate::routes::bookings_datev::*;
-use crate::routes::invoices::*;
+use crate::routes::documents::*;
 use crate::models::Document;
 use crate::mntconfig::Config;
 

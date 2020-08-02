@@ -5,7 +5,7 @@
     <link rel="stylesheet" type="text/css" href="/css/style.css"></link>
   </head>
   <body>
-    {{ macros::nav(active="invoices") }}
+    {{ macros::nav(active="documents") }}
     <table>
       <tr>
         <th>ID</th>
@@ -19,20 +19,20 @@
         <th class="details">Name</th>
         <th>Document</th>
       </tr>
-      {% for i in invoices %}
+      {% for d in documents %}
       <tr>
-        <td>{{ i.serial_id }}</td>
-        <td>{{ i.kind }}</td>
-        <td>{{ i.doc_date }}</td>
-        <td>{{ i.currency }}</td>
-        <td>{{ i.amount_cents/100.0 }}</td>
-        <td>{{ i.account }}</td>
-        <td>{{ i.customer_account }}</td>
-        <td>{{ i.customer_company }}</td>
-        <td>{{ i.customer_name }}</td>
+        <td>{{ d.serial_id }}</td>
+        <td>{{ d.kind }}</td>
+        <td>{{ d.doc_date }}</td>
+        <td>{{ d.currency }}</td>
+        <td>{{ d.amount_cents/100.0 }}</td>
+        <td>{{ d.account }}</td>
+        <td>{{ d.customer_account }}</td>
+        <td>{{ d.customer_company }}</td>
+        <td>{{ d.customer_name }}</td>
         <td>
-          <a href="/invoices/{{ i.id }}">HTML</a>
-          <a href="/invoices/{{ i.id }}/copy">Copy</a>
+          <a href="/documents/{{ d.id }}">HTML</a>
+          <a href="/documents/{{ d.id }}/copy">Copy</a>
         </td>
       </tr>
       {% endfor %}

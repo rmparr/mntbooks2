@@ -12,7 +12,7 @@ use chrono::prelude::*;
 
 // see: https://github.com/actix/examples/blob/master/diesel/src/main.rs
 
-#[get("/invoices.json")]
+#[get("/documents.json")]
 pub async fn get_documents_json(
     pool: web::Data<DbPool>,
 ) -> Result<HttpResponse, Error> {
@@ -22,7 +22,7 @@ pub async fn get_documents_json(
     Ok(HttpResponse::Ok().json(results))
 }
 
-#[get("/invoices")]
+#[get("/documents")]
 pub async fn get_documents(
     tmpl: web::Data<tera::Tera>,
     pool: web::Data<DbPool>,
@@ -32,16 +32,16 @@ pub async fn get_documents(
     let results = documents::get_all_documents(&conn);
 
     let mut ctx = tera::Context::new();
-    ctx.insert("invoices", &results);
+    ctx.insert("documents", &results);
     
-    let s = tmpl.render("invoices.html", &ctx)
+    let s = tmpl.render("documents.html", &ctx)
         .map_err(|e| error::ErrorInternalServerError(format!("Template error: {:?}", e)))
         .unwrap();
     
     Ok(HttpResponse::Ok().content_type("text/html").body(s))
 }
 
-#[get("/invoices/{id}")]
+#[get("/documents/{id}")]
 pub async fn get_document(
     tmpl: web::Data<tera::Tera>,
     pool: web::Data<DbPool>,
@@ -53,7 +53,7 @@ pub async fn get_document(
     let result = documents::get_document_by_id(&conn, &path.0);
 
     let mut ctx = tera::Context::new();
-    ctx.insert("invoice", &result);
+    ctx.insert("document", &result);
     ctx.insert("line_items", &documents::line_items(&result));
     ctx.insert("sender_address", &config.company_address);
     ctx.insert("legal_lines", &config.invoice_legal_lines);
@@ -66,7 +66,7 @@ pub async fn get_document(
     ctx.insert("outro", &"".to_string());
     ctx.insert("terms", &"".to_string());
     
-    let s = tmpl.render("invoice.html", &ctx)
+    let s = tmpl.render("document.html", &ctx)
         .map_err(|e| {
             println!("{:?}",e);
             error::ErrorInternalServerError("Template error")
@@ -76,7 +76,7 @@ pub async fn get_document(
     Ok(HttpResponse::Ok().content_type("text/html").body(s))
 }
 
-#[post("/invoices")]
+#[post("/documents")]
 pub async fn add_document(
     pool: web::Data<DbPool>,
     params: web::Form<Document>
@@ -87,7 +87,7 @@ pub async fn add_document(
     Ok(HttpResponse::Ok().json(&document))
 }
 
-#[post("/invoices.json")]
+#[post("/documents.json")]
 pub async fn add_document_json(
     pool: web::Data<DbPool>,
     params: web::Json<Document>
@@ -98,7 +98,7 @@ pub async fn add_document_json(
     Ok(HttpResponse::Ok().json(&document))
 }
 
-#[get("/invoices/new")]
+#[get("/documents/new")]
 pub async fn new_document(
     tmpl: web::Data<tera::Tera>
 ) -> Result<HttpResponse, Error> {
@@ -141,17 +141,17 @@ pub async fn new_document(
         amount_cents: 0
     }];
     
-    ctx.insert("invoice", &document);
+    ctx.insert("document", &document);
     ctx.insert("line_items", &items);
     
-    let s = tmpl.render("invoice_new.html", &ctx)
+    let s = tmpl.render("document_new.html", &ctx)
         .map_err(|e| error::ErrorInternalServerError(format!("Template error: {:?}", e)))
         .unwrap();
     
     Ok(HttpResponse::Ok().content_type("text/html").body(s))
 }
 
-#[get("/invoices/{id}/copy")]
+#[get("/documents/{id}/copy")]
 pub async fn copy_document(
     tmpl: web::Data<tera::Tera>,
     pool: web::Data<DbPool>,
@@ -161,18 +161,18 @@ pub async fn copy_document(
     let result = documents::get_document_by_id(&conn, &path.0);
     let mut ctx = tera::Context::new();
 
-    let inv = Document {
+    let doc = Document {
         serial_id: Some("".to_string()),
         doc_date: utc_iso_date_string(&Utc::now()),
         ..result.clone()
     };
 
-    ctx.insert("invoice", &inv);
+    ctx.insert("document", &doc);
     ctx.insert("line_items", &documents::line_items(&result));
     
     // TODO Make .kind selected in template somehow?
     
-    let s = tmpl.render("invoice_new.html", &ctx)
+    let s = tmpl.render("document_new.html", &ctx)
         .map_err(|e| error::ErrorInternalServerError(format!("Template error: {:?}", e)))
         .unwrap();
     

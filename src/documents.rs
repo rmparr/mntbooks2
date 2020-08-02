@@ -26,9 +26,9 @@ pub struct LineItem {
     pub amount_cents: i32
 }
 
-pub fn line_items(inv: &Document) -> Vec<LineItem> {
+pub fn line_items(doc: &Document) -> Vec<LineItem> {
     let mut items:Vec<LineItem> = Vec::new();
-    if let Some(items_str) = &inv.line_items {
+    if let Some(items_str) = &doc.line_items {
         if let Ok(i) = serde_json::from_str::<Vec<LineItem>>(items_str) {
             items.extend(i);
         }
@@ -58,7 +58,7 @@ pub fn new_doc_id(conn: &SqliteConnection, doc_kind: &str) -> String {
 
 pub fn create_document(conn: &SqliteConnection, new_document: &Document) -> Document {
     let new_doc_id = new_doc_id(conn, &new_document.kind);
-    let inv = Document {
+    let doc = Document {
         id: Uuid::new_v4().to_string(),
         serial_id: Some(new_doc_id),
         updated_at: utc_iso_date_string(&Utc::now()), // FIXME missing time?
@@ -68,15 +68,15 @@ pub fn create_document(conn: &SqliteConnection, new_document: &Document) -> Docu
     // TODO more input validations
     // TODO improve feedback to user providing bad input
     let re = Regex::new(r"^\d{4}-\d{2}-\d{2}$").unwrap();
-    assert!(re.is_match(&inv.doc_date));
+    assert!(re.is_match(&doc.doc_date));
 
-    let res = diesel::insert_into(documents).values(&inv).execute(conn);
-    println!("create_invoice result: {:?}", res);
+    let res = diesel::insert_into(documents).values(&doc).execute(conn);
+    println!("create_document result: {:?}", res);
 
-    inv
+    doc
 }
 
-// TODO update_invoice
+// TODO update document_
 // FIXME arbitrary limit
 pub fn get_all_documents(conn: &SqliteConnection) -> Vec<Document> {
     documents.limit(1000).load::<Document>(conn).unwrap()

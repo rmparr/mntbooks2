@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>Invoice</title>
+    <title>Document</title>
     <style type="text/css">
       /* the font has to be installed on the machine locally for the pdf process
          to render a pdf with real text instead of an image */
@@ -169,21 +169,21 @@
       </div>
       
       <div id="recipient-addr">
-        {% if invoice.customer_company %}{{ invoice.customer_company }}{% endif %}<br>
-        {{ invoice.customer_name }}<br>
-        {{ invoice.customer_address_1 }}<br>
-        {{ invoice.customer_address_2 }}<br>
-        {{ invoice.customer_zip }}
-        {{ invoice.customer_city }}<br>
-        {{ invoice.customer_state }}
-        {{ invoice.customer_country }}
+        {% if document.customer_company %}{{ document.customer_company }}{% endif %}<br>
+        {{ document.customer_name }}<br>
+        {{ document.customer_address_1 }}<br>
+        {{ document.customer_address_2 }}<br>
+        {{ document.customer_zip }}
+        {{ document.customer_city }}<br>
+        {{ document.customer_state }}
+        {{ document.customer_country }}
       </div>
       
       <div id="meta">
-        <b>Nummer: {{ invoice.kind }}-{{ invoice.serial_id }}</b><br>
-        Datum: {{ invoice.doc_date }}<br>
-        {% if invoice.replaces_id %}<b>Ersetzt: {{ invoice.replaces_id }}</b>{% endif %}<br>
-        {% if invoice.order_id %}Bestellnummer: {{ invoice.order_id }}{% endif %}<br>
+        <b>Nummer: {{ document.kind }}-{{ document.serial_id }}</b><br>
+        Datum: {{ document.doc_date }}<br>
+        {% if document.replaces_id %}<b>Ersetzt: {{ document.replaces_id }}</b>{% endif %}<br>
+        {% if document.order_id %}Bestellnummer: {{ document.order_id }}{% endif %}<br>
         <br>
         Leistungsdatum entspricht Rechnungsdatum
       </div>
@@ -197,13 +197,13 @@
     
     <div id="intro">
       <div id="intro-space"></div>
-      {% if invoice.kind == "quote" %}
+      {% if document.kind == "quote" %}
       <h2>Angebot</h2>
-      {% elif invoice.kind == "delivery_note" %}
+      {% elif document.kind == "delivery_note" %}
       <h2>Lieferschein</h2>
-      {% elif invoice.kind == "refund" %}
+      {% elif document.kind == "refund" %}
       <h2>Stornorechnung</h2>
-      {% elif invoice.replaces_id %}
+      {% elif document.replaces_id %}
       <h2>Korrekturrechnung</h2>
       {% else %}
       <h2>Rechnung</h2>
@@ -215,9 +215,9 @@
         <tr>
           <th>Pos.</th>
           <th>Menge</th>
-          <th>Preis ({{ invoice.currency }})</th>
+          <th>Preis ({{ document.currency }})</th>
           <th>Bezeichnung</th>
-          <th>{{ invoice.currency }}</th>
+          <th>{{ document.currency }}</th>
         </tr>
       </thead>
       <tfoot>
@@ -243,7 +243,7 @@
         </tr>
         <tr class="noborder">
           <td colspan="3"></td>
-          <td>USt ({{ tax_rate }}%{% if invoice.vat_included == "true" %} inkl.{% endif %})</td>
+          <td>USt ({{ tax_rate }}%{% if document.vat_included == "true" %} inkl.{% endif %})</td>
           <td class="sum">{{ tax_total }}</td>
         </tr>
         <tr class="noborder sums-foot grand-total">
