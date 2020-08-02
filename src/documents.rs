@@ -5,6 +5,7 @@ use crate::models::*;
 use crate::schema::documents::dsl::*;
 use diesel::dsl::*;
 use uuid::Uuid;
+use regex::Regex;
 
 use chrono::prelude::*;
 
@@ -38,8 +39,12 @@ pub fn line_items(inv: &Document) -> Vec<LineItem> {
 pub fn new_invoice_id(conn: &SqliteConnection) -> String {
     let utc: DateTime<Utc> = Utc::now();
     let year = utc.year();
+    // FIXME this may assign the same invoice ID to multiple documents
+    // as it only increments up from invoice IDs of those with a proper
+    // doc_date
     let new_invoice_id = match documents.select(max(invoice_id))
         .filter(doc_date.like(format!("{}-%", year)))
+        .filter(kind.eq("invoice"))
         .first::<Option<String>>(conn) {
         Ok(Some(i)) => {
             let parts:Vec<&str> = i.split('-').collect();
@@ -61,7 +66,11 @@ pub fn create_invoice(conn: &SqliteConnection, new_document: &Document) -> Docum
         created_at: utc_iso_date_string(&Utc::now()),
         ..(*new_document).clone()
     };
-    
+    // TODO more input validations
+    // TODO improve feedback to user providing bad input
+    let re = Regex::new(r"^\d{4}-\d{2}-\d{2}$").unwrap();
+    assert!(re.is_match(&inv.doc_date));
+
     let res = diesel::insert_into(documents).values(&inv).execute(conn);
     println!("create_invoice result: {:?}", res);
 
