@@ -5,6 +5,7 @@ use crate::models::*;
 use crate::schema::documents::dsl::*;
 use diesel::dsl::*;
 use uuid::Uuid;
+use regex::Regex;
 
 use chrono::prelude::*;
 
@@ -61,8 +62,6 @@ pub fn new_invoice_id(conn: &SqliteConnection) -> String {
 
 pub fn create_invoice(conn: &SqliteConnection, new_document: &Document) -> Document {
     let new_invoice_id = new_invoice_id(conn);
-    // TODO enforce field input formats, e.g. the date field can eat non-datey stuff
-    // which confuses the new_invoice_id algorithm, which relies on proper doc_ids
     let inv = Document {
         id: Uuid::new_v4().to_string(),
         invoice_id: Some(new_invoice_id),
@@ -70,6 +69,10 @@ pub fn create_invoice(conn: &SqliteConnection, new_document: &Document) -> Docum
         created_at: utc_iso_date_string(&Utc::now()),
         ..(*new_document).clone()
     };
+    // TODO more input validations
+    // TODO improve feedback to user providing bad input
+    let re = Regex::new(r"^\d{4}-\d{2}-\d{2}$").unwrap();
+    assert!(re.is_match(&inv.doc_date));
     
     let res = diesel::insert_into(documents).values(&inv).execute(conn);
     println!("create_invoice result: {:?}", res);
