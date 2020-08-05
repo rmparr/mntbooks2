@@ -322,6 +322,8 @@ pub async fn get_bookings_datev_csv(
                 let docimages:Vec<DocumentImage> = document_images.limit(1).filter(docimg_doc_id.eq(&booking_doc_id))
                     .load::<DocumentImage>(&conn).unwrap();
 
+                println!("Doc {:?} docimages: {:?}", &booking_doc_id, &docimages);
+
                 for di in docimages {
                     let pdf_source = Path::new(&config.docstore_path.clone()).join(&di.pdf_path.clone());
                     let pdf_dest = export_folder.join("Belege").join(format!("{}.pdf",belegfeld));

@@ -6,14 +6,14 @@
 use crate::schema::*;
 
 
-#[derive(serde::Serialize, serde::Deserialize, Clone, Queryable, Insertable, Identifiable)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Queryable, Insertable, Identifiable, Debug)]
 pub struct BookingDoc {
     pub id: i32,
     pub booking_id: Option<String>,
     pub doc_id: Option<String>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Clone, Queryable, Insertable, Identifiable)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Queryable, Insertable, Identifiable, Debug)]
 pub struct Booking {
     pub id: String,
     pub booking_date: String,
@@ -31,7 +31,7 @@ pub struct Booking {
     pub done: Option<bool>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Clone, Queryable, Insertable, Identifiable)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Queryable, Insertable, Identifiable, Debug)]
 #[primary_key(path)]
 pub struct DocumentImage {
     pub path: String,
@@ -44,7 +44,7 @@ pub struct DocumentImage {
     pub updated_at: String,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Clone, Queryable, Insertable, Identifiable)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Queryable, Insertable, Identifiable, Debug)]
 pub struct Document {
     pub id: String,
     pub kind: String,
