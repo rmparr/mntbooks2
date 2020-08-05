@@ -14,18 +14,24 @@
         <th>Acc</th>
         <th>&rarr; Acc</th>
         <th class="details">Details</th>
-        <th>Documents</th>
+        <th>Documents (receipt URL)</th>
+        <th>Documents (BookingDocs)</th>
       </tr>
-      {% for b in bookings %}
+      {% for b in bookings_plus_docs %}
       <tr>
-        <td>{{ b.booking_date }}</td>
-        <td>{{ b.currency }}</td>
-        <td>{{ b.amount_cents/100.0 }}</td>
-        <td>{{ b.debit_account }}</td>
-        <td>{{ b.credit_account }}</td>
-        <td>{{ b.details }}</td>
-        <td>
-          {{ b.receipt_url }}
+        <td>{{ b.booking.booking_date }}</td>
+        <td>{{ b.booking.currency }}</td>
+        <td>{{ b.booking.amount_cents/100.0 }}</td>
+        <td>{{ b.booking.debit_account }}</td>
+        <td>{{ b.booking.credit_account }}</td>
+        <td>{{ b.booking.details }}</td>
+        <td>{{ b.booking.receipt_url }}</td>
+	<td>
+	  <ul>
+          {% for d in b.docs %}
+	  <li><a href="/documents/{{ d }}">{{ d }}</a>
+          {% endfor %}
+	  </ul>
         </td>
       </tr>
       {% endfor %}

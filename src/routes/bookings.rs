@@ -4,7 +4,14 @@ use diesel::sqlite::SqliteConnection;
 type DbPool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
 
 use crate::bookings;
-use crate::models::Booking;
+use crate::bookingdocs;
+use crate::models::*;
+
+#[derive(serde::Serialize)]
+struct BookingPlusDocs {
+    booking: Booking,
+    docs: Vec<String>
+}
 
 #[get("/bookings")]
 pub async fn get_bookings(
@@ -16,8 +23,22 @@ pub async fn get_bookings(
 
     let results:Vec<Booking> = bookings::get_all_bookings(&conn, &q);
 
+    let mut bookings_plus_docs:Vec<BookingPlusDocs> =Vec::new();
+    for booking in results {
+        let booking_docs = bookingdocs::get_bookingdocs(&conn, &booking);
+        let mut doc_ids: Vec<String> = Vec::new();
+        for booking_doc in booking_docs {
+            doc_ids.extend(booking_doc.doc_id);
+        }
+        let booking_plus_docs = BookingPlusDocs {
+            booking: booking,
+            docs: doc_ids,
+        };
+        bookings_plus_docs.push(booking_plus_docs);
+    }
+
     let mut ctx = tera::Context::new();
-    ctx.insert("bookings", &results);
+    ctx.insert("bookings_plus_docs", &bookings_plus_docs);
     
     let s = tmpl.render("bookings.html", &ctx)
         .map_err(|e| error::ErrorInternalServerError(format!("Template error: {:?}", e)))
