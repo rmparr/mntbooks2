@@ -16,6 +16,7 @@ use tera::Tera;
 mod models;
 mod schema;
 mod bookings;
+mod bookingdocs;
 mod documents;
 mod routes;
 mod mntconfig;
@@ -23,6 +24,7 @@ mod mntconfig;
 use crate::routes::bookings::*;
 use crate::routes::bookings_datev::*;
 use crate::routes::documents::*;
+use crate::routes::bookingdocs::*;
 use crate::models::Document;
 use crate::mntconfig::Config;
 
@@ -84,6 +86,7 @@ async fn main() -> std::io::Result<()> {
             .service(get_document)
             .service(add_document)
             .service(add_document_json)
+            .service(add_bookingdoc_json)
             .service(Files::new("/css", "static/css/"))
             .service(Files::new("/js", "static/js/"))
             .service(Files::new("/img", "static/img/"))
