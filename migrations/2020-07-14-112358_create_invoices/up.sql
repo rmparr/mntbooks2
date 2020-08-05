@@ -56,6 +56,6 @@ create table bookings (
 
 create table booking_docs (
   id integer not null primary key,
-  booking_id text,
-  doc_id text
+  booking_id text, -- FIXME should be not null
+  doc_id text -- FIXME should be not null
 );
