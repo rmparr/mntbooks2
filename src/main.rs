@@ -22,6 +22,7 @@ use crate::routes::bookings::*;
 use crate::routes::bookings_datev::*;
 use crate::routes::documents::*;
 use crate::routes::bookingdocs::*;
+use crate::routes::documentimages::*;
 use crate::models::Document;
 
 fn json_error_handler(err: error::JsonPayloadError, _req: &HttpRequest) -> error::Error {
@@ -72,6 +73,7 @@ async fn main() -> std::io::Result<()> {
             .service(get_bookings_datev_csv)
             .service(get_documents)
             .service(get_documents_json)
+            .service(get_documentimages_json)
             .service(new_document)
             .service(copy_document)
             .service(get_document)
