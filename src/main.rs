@@ -5,11 +5,8 @@ extern crate toml;
 #[macro_use]
 extern crate diesel;
 
-use diesel::sqlite::SqliteConnection;
-
 use actix_web::{error, middleware, web, App, FromRequest, HttpRequest, HttpResponse, HttpServer};
 use actix_files::Files;
-use diesel::r2d2::{self, ConnectionManager};
 
 use tera::Tera;
 
@@ -26,7 +23,6 @@ use crate::routes::bookings_datev::*;
 use crate::routes::documents::*;
 use crate::routes::bookingdocs::*;
 use crate::models::Document;
-use crate::mntconfig::Config;
 
 fn json_error_handler(err: error::JsonPayloadError, _req: &HttpRequest) -> error::Error {
     use actix_web::error::JsonPayloadError;
@@ -51,16 +47,11 @@ async fn main() -> std::io::Result<()> {
     dotenv::dotenv().ok();
 
     // set up database connection pool
-    let connspec = std::env::var("DATABASE_URL").expect("DATABASE_URL");
-    let manager = ConnectionManager::<SqliteConnection>::new(connspec);
-    let pool = r2d2::Pool::builder()
-        .build(manager)
-        .expect("Failed to create pool.");
+    let pool = mntbooks::db_pool_from_env("DATABASE_URL");
 
     let bind = "127.0.0.1:8080";
 
-    let config_str = std::fs::read_to_string("mntconfig.toml").unwrap();
-    let mntconfig:Config = toml::from_str(&config_str).unwrap();
+    let mntconfig = mntconfig::Config::new("mntconfig.toml");
 
     println!("Starting server at: {}", &bind);
 

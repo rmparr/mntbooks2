@@ -1,21 +1,11 @@
-extern crate diesel;
-use diesel::sqlite::SqliteConnection;
-use diesel::r2d2::{self, ConnectionManager};
-
 extern crate toml;
 
 extern crate mntbooks;
 use mntbooks::documentimages;
 
 fn main() {
-    let config_str = std::fs::read_to_string("mntconfig.toml").unwrap();
-    let config: mntbooks::mntconfig::Config = toml::from_str(&config_str).unwrap();
-    let connspec = std::env::var("DATABASE_URL").expect("DATABASE_URL");
-
-    let manager = ConnectionManager::<SqliteConnection>::new(connspec);
-    let pool = r2d2::Pool::builder()
-        .build(manager)
-        .expect("Failed to create pool.");
+    let config = mntbooks::mntconfig::Config::new("mntconfig.toml");
+    let pool = mntbooks::db_pool_from_env("DATABASE_URL");
     let conn = pool.get().expect("couldn't get db connection from pool");
 
     let doc_imgs = documentimages::get_all_document_images(&conn);
