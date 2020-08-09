@@ -2,11 +2,14 @@ extern crate diesel;
 use diesel::sqlite::SqliteConnection;
 use diesel::r2d2::{self, ConnectionManager};
 
+extern crate toml;
+
 extern crate mntbooks;
 use mntbooks::documentimages;
 
 fn main() {
-    let docstore_dir = std::env::var("DOCSTORE").expect("DOCSTORE");
+    let config_str = std::fs::read_to_string("mntconfig.toml").unwrap();
+    let config: mntbooks::mntconfig::Config = toml::from_str(&config_str).unwrap();
     let connspec = std::env::var("DATABASE_URL").expect("DATABASE_URL");
 
     let manager = ConnectionManager::<SqliteConnection>::new(connspec);
@@ -16,7 +19,7 @@ fn main() {
     let conn = pool.get().expect("couldn't get db connection from pool");
 
     let doc_imgs = documentimages::get_all_document_images(&conn);
-    for entry in std::fs::read_dir(docstore_dir).unwrap() {
+    for entry in std::fs::read_dir(config.docstore_path).unwrap() {
         match entry {
             Ok(x) => {
                 // FIXME: is_file() may produce unexpected results, check for dotfiles, #-prefixed etc.
