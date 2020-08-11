@@ -74,6 +74,7 @@ async fn main() -> std::io::Result<()> {
             .service(get_documents)
             .service(get_documents_json)
             .service(get_documentimages_json)
+            .service(set_documentimage_docid)
             .service(new_document)
             .service(copy_document)
             .service(get_document)
