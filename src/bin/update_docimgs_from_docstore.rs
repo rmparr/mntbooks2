@@ -12,7 +12,6 @@ fn main() {
     for entry in std::fs::read_dir(config.docstore_path).unwrap() {
         match entry {
             Ok(x) => {
-                // FIXME: is_file() may produce unexpected results, check for dotfiles, #-prefixed etc.
                 if x.path().is_file() {
                     let y = x.file_name();
                     let filename = y.to_str().unwrap();
