@@ -21,7 +21,9 @@ pub fn create_bookingdoc(conn: &SqliteConnection, new_booking_doc: &BookingDocIn
     bookings.find(&new_booking_doc.booking_id).get_result::<Booking>(conn).unwrap();
     documents.find(&new_booking_doc.doc_id).get_result::<Document>(conn).unwrap();
 
-    // create incremented ID; TODO: do diesel or sqlite provide facilities for this?
+    // create incremented ID; TODO: let sqlite generate the IDs; for this we need to insert a
+    // struct /without/ the .id field, in addition to what we have now for BookingDoc; we
+    // probably should change the ./generate_schema_and_models.sh magic for this.
     let new_id = match booking_docs.select(max(bookingdoc_id)).first::<Option<i32>>(conn) {
         Ok(Some(i)) => {
             i + 1 
