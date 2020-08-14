@@ -1,4 +1,4 @@
-use actix_web::{post, get, web, Error, HttpResponse};
+use actix_web::{error, post, get, web, Error, HttpResponse};
 use diesel::r2d2::{self, ConnectionManager};
 use diesel::sqlite::SqliteConnection;
 type DbPool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
@@ -19,6 +19,8 @@ pub async fn set_documentimage_docid(
     params: web::Json<documentimages::DocumentImageDocIdInsert>,
 ) -> Result<HttpResponse, Error> {
     let conn = pool.get().expect("couldn't get db connection from pool");
-    let document_image = documentimages::set_doc_id(&conn, &params);
-    Ok(HttpResponse::Ok().json(&document_image))
+    match documentimages::set_doc_id(&conn, &params) {
+        Ok(document_image) =>  Ok(HttpResponse::Ok().json(&document_image)),
+        Err(e) => Err(error::ErrorBadRequest(format!("{:?}", e)))
+    }
 }

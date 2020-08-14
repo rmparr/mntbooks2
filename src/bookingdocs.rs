@@ -15,11 +15,11 @@ pub struct BookingDocInsert {
     pub doc_id: String,
 }
 
-pub fn create_bookingdoc(conn: &SqliteConnection, new_booking_doc: &BookingDocInsert) -> BookingDoc {
+pub fn create_bookingdoc(conn: &SqliteConnection, new_booking_doc: &BookingDocInsert) -> Result<BookingDoc, diesel::result::Error> {
 
-    // ensure booking and document exist; TODO: expressive error instead of panic
-    bookings.find(&new_booking_doc.booking_id).get_result::<Booking>(conn).unwrap();
-    documents.find(&new_booking_doc.doc_id).get_result::<Document>(conn).unwrap();
+    // ensure booking and document exist
+    bookings.find(&new_booking_doc.booking_id).get_result::<Booking>(conn)?;
+    documents.find(&new_booking_doc.doc_id).get_result::<Document>(conn)?;
 
     // create incremented ID; TODO: let sqlite generate the IDs; for this we need to insert a
     // struct /without/ the .id field, in addition to what we have now for BookingDoc; we
@@ -40,7 +40,7 @@ pub fn create_bookingdoc(conn: &SqliteConnection, new_booking_doc: &BookingDocIn
     let res = diesel::insert_into(booking_docs).values(&doc).execute(conn);
     println!("create_bookingdoc result: {:?}", res);
 
-    doc
+    Ok(doc)
 }
 
 pub fn get_bookingdocs(conn: &SqliteConnection, booking: &Booking) -> Vec<BookingDoc> {
