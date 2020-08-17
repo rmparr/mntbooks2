@@ -128,6 +128,7 @@ pub async fn new_document(
         vat_included: Some("true".to_string()), // FIXME
         replaces_id: None,
         replaced_by_id: None,
+        // FIXME: why set these here if the values are overwritten by create_document?
         created_at: mntbooks::utc_iso_date_string(&Utc::now()),
         updated_at: mntbooks::utc_iso_date_string(&Utc::now())
     };
