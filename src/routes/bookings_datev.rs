@@ -13,7 +13,6 @@ use crate::bookings;
 use crate::models::*;
 use crate::schema::booking_docs::dsl::*;
 use crate::schema::document_images::dsl::{document_images, doc_id as docimg_doc_id};
-use crate::documents::utc_iso_date_string;
 
 use csv::{WriterBuilder,QuoteStyle};
 use chrono::prelude::*;
@@ -188,7 +187,7 @@ pub async fn get_bookings_datev_csv(
     let bookings:Vec<Booking> = bookings::get_all_bookings(&conn, &q);
 
     let export_folder = Path::new(&config.datev_export_path.clone())
-        .join(format!("{}-{:04}", utc_iso_date_string(&Utc::now()), random_integer::random_u16(0,10000)));
+        .join(format!("{}-{:04}", mntbooks::utc_iso_date_string(&Utc::now()), random_integer::random_u16(0,10000)));
 
     fs::create_dir(&export_folder).unwrap();
     fs::create_dir(&export_folder.join("Belege")).unwrap();

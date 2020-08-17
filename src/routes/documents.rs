@@ -4,7 +4,7 @@ use diesel::sqlite::SqliteConnection;
 type DbPool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
 
 use crate::documents;
-use crate::documents::{LineItem, utc_iso_date_string};
+use crate::documents::LineItem;
 use crate::models::Document;
 use crate::mntconfig::Config;
 
@@ -107,7 +107,7 @@ pub async fn new_document(
     let document= Document {
         id: "_".to_string(), // filled in POST handler
         serial_id: Some("".to_string()), // filled in POST handler
-        doc_date: utc_iso_date_string(&Utc::now()),
+        doc_date: mntbooks::utc_iso_date_string(&Utc::now()),
         kind: "invoice".to_string(),
         amount_cents: Some(123456),
         currency: Some("EUR".to_string()),
@@ -128,8 +128,8 @@ pub async fn new_document(
         vat_included: Some("true".to_string()), // FIXME
         replaces_id: None,
         replaced_by_id: None,
-        created_at: utc_iso_date_string(&Utc::now()),
-        updated_at: utc_iso_date_string(&Utc::now())
+        created_at: mntbooks::utc_iso_date_string(&Utc::now()),
+        updated_at: mntbooks::utc_iso_date_string(&Utc::now())
     };
 
     let items:Vec<LineItem> = vec![LineItem {
@@ -163,7 +163,7 @@ pub async fn copy_document(
 
     let doc = Document {
         serial_id: Some("".to_string()),
-        doc_date: utc_iso_date_string(&Utc::now()),
+        doc_date: mntbooks::utc_iso_date_string(&Utc::now()),
         ..result.clone()
     };
 
