@@ -2,11 +2,12 @@ extern crate toml;
 extern crate mntbooks;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
+use chrono::prelude::*;
 use mntbooks::documentimages::get_all_document_images;
 use mntbooks::models::DocumentImage;
 use mntbooks::schema::document_images::dsl::document_images;
 use mntbooks::mntconfig::Config;
-use mntbooks::util::db_pool_from_env;
+use mntbooks::util::{db_pool_from_env,utc_iso_date_string};
 
 fn create_document_image(conn: &SqliteConnection, img_path: &str) -> DocumentImage {
     // TODO: detect mime, extract text, build PDF and thumbnail etc.
@@ -17,8 +18,8 @@ fn create_document_image(conn: &SqliteConnection, img_path: &str) -> DocumentIma
         doc_id: None,
         extracted_text: "".to_string(),
         done: false,
-        created_at: "".to_string(),
-        updated_at: "".to_string()
+        created_at: utc_iso_date_string(&Utc::now()),
+        updated_at: utc_iso_date_string(&Utc::now()),
     };
     let res = diesel::insert_into(document_images).values(&doc_img).execute(conn);
     println!("create_document_image result: {:?}", res);
