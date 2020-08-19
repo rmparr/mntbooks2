@@ -1,14 +1,36 @@
 extern crate toml;
-
 extern crate mntbooks;
-use mntbooks::documentimages;
+use diesel::prelude::*;
+use diesel::sqlite::SqliteConnection;
+use mntbooks::documentimages::get_all_document_images;
+use mntbooks::models::DocumentImage;
+use mntbooks::schema::document_images::dsl::document_images;
+use mntbooks::mntconfig::Config;
+use mntbooks::util::db_pool_from_env;
+
+fn create_document_image(conn: &SqliteConnection, img_path: &str) -> DocumentImage {
+    // TODO: detect mime, extract text, build PDF and thumbnail etc.
+    let doc_img = DocumentImage {
+        path: img_path.to_string(),
+        pdf_path: "".to_string(),
+        mime_type: "".to_string(),
+        doc_id: None,
+        extracted_text: "".to_string(),
+        done: false,
+        created_at: "".to_string(),
+        updated_at: "".to_string()
+    };
+    let res = diesel::insert_into(document_images).values(&doc_img).execute(conn);
+    println!("create_document_image result: {:?}", res);
+    doc_img
+}
 
 fn main() {
-    let config = mntbooks::mntconfig::Config::new("mntconfig.toml");
-    let pool = mntbooks::db_pool_from_env("DATABASE_URL");
+    let config = Config::new("mntconfig.toml");
+    let pool = db_pool_from_env("DATABASE_URL");
     let conn = pool.get().expect("couldn't get db connection from pool");
 
-    let doc_imgs = documentimages::get_all_document_images(&conn);
+    let doc_imgs = get_all_document_images(&conn);
     for entry in std::fs::read_dir(config.docstore_path).unwrap() {
         match entry {
             Ok(x) => {
@@ -23,7 +45,7 @@ fn main() {
                         }
                     }
                     if is_new {
-                        documentimages::create_document_image(&conn, &filename);
+                        create_document_image(&conn, &filename);
                     }
                 } else {
                     println!("non-file?: {:?}", x.file_name());

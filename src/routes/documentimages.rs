@@ -2,7 +2,7 @@ use actix_web::{error, post, get, web, Error, HttpResponse};
 use diesel::r2d2::{self, ConnectionManager};
 use diesel::sqlite::SqliteConnection;
 type DbPool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
-use mntbooks::documentimages;
+use crate::documentimages;
 
 #[get("/documentimages.json")]
 pub async fn get_documentimages_json(

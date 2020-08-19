@@ -9,6 +9,8 @@ use regex::Regex;
 
 use chrono::prelude::*;
 
+use super::util::utc_iso_date_string;
+
 // TODO: missing SKU in frontends
 
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -56,8 +58,8 @@ pub fn create_document(conn: &SqliteConnection, new_document: &Document) -> Docu
     let doc = Document {
         id: Uuid::new_v4().to_string(),
         serial_id: Some(new_doc_id),
-        updated_at: mntbooks::utc_iso_date_string(&Utc::now()), // FIXME missing time?
-        created_at: mntbooks::utc_iso_date_string(&Utc::now()),
+        updated_at: utc_iso_date_string(&Utc::now()), // FIXME missing time?
+        created_at: utc_iso_date_string(&Utc::now()),
         ..(*new_document).clone()
     };
     // TODO more input validations

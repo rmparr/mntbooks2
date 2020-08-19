@@ -15,8 +15,10 @@ mod schema;
 mod bookings;
 mod bookingdocs;
 mod documents;
+mod documentimages;
 mod routes;
 mod mntconfig;
+mod util;
 
 use crate::routes::bookings::*;
 use crate::routes::bookings_datev::*;
@@ -48,7 +50,7 @@ async fn main() -> std::io::Result<()> {
     dotenv::dotenv().ok();
 
     // set up database connection pool
-    let pool = mntbooks::db_pool_from_env("DATABASE_URL");
+    let pool = util::db_pool_from_env("DATABASE_URL");
 
     let bind = "127.0.0.1:8080";
 

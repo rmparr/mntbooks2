@@ -10,6 +10,8 @@ use crate::mntconfig::Config;
 
 use chrono::prelude::*;
 
+use crate::util::utc_iso_date_string;
+
 // see: https://github.com/actix/examples/blob/master/diesel/src/main.rs
 
 #[get("/documents.json")]
@@ -107,7 +109,7 @@ pub async fn new_document(
     let document= Document {
         id: "_".to_string(), // filled in POST handler
         serial_id: Some("".to_string()), // filled in POST handler
-        doc_date: mntbooks::utc_iso_date_string(&Utc::now()),
+        doc_date: utc_iso_date_string(&Utc::now()),
         kind: "invoice".to_string(),
         amount_cents: Some(123456),
         currency: Some("EUR".to_string()),
@@ -129,8 +131,8 @@ pub async fn new_document(
         replaces_id: None,
         replaced_by_id: None,
         // FIXME: why set these here if the values are overwritten by create_document?
-        created_at: mntbooks::utc_iso_date_string(&Utc::now()),
-        updated_at: mntbooks::utc_iso_date_string(&Utc::now())
+        created_at: utc_iso_date_string(&Utc::now()),
+        updated_at: utc_iso_date_string(&Utc::now())
     };
 
     let items:Vec<LineItem> = vec![LineItem {
@@ -164,7 +166,7 @@ pub async fn copy_document(
 
     let doc = Document {
         serial_id: Some("".to_string()),
-        doc_date: mntbooks::utc_iso_date_string(&Utc::now()),
+        doc_date: utc_iso_date_string(&Utc::now()),
         ..result.clone()
     };
 
