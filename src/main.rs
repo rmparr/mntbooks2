@@ -52,7 +52,7 @@ async fn main() -> std::io::Result<()> {
     // set up database connection pool
     let pool = util::db_pool_from_env("DATABASE_URL");
 
-    let bind = "127.0.0.1:8080";
+    let bind = "0.0.0.0:8080";
 
     let mntconfig = mntconfig::Config::new("mntconfig.toml");
 
@@ -75,8 +75,8 @@ async fn main() -> std::io::Result<()> {
             .service(get_bookings_datev_csv)
             .service(get_documents)
             .service(get_documents_json)
+            .service(get_documentimages)
             .service(get_documentimages_json)
-            .service(set_documentimage_docid)
             .service(new_document)
             .service(copy_document)
             .service(get_document)
@@ -86,6 +86,7 @@ async fn main() -> std::io::Result<()> {
             .service(Files::new("/css", "static/css/"))
             .service(Files::new("/js", "static/js/"))
             .service(Files::new("/img", "static/img/"))
+            .service(Files::new("/docstore", &mntconfig.docstore_path).disable_content_disposition())
             .app_data(web::Json::<Document>::configure(|cfg| {
                 cfg.error_handler(json_error_handler)
             }))

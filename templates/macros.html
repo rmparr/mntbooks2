@@ -14,7 +14,7 @@
       
       <span>
         {% if active == "documents" %}
-       Documents
+        Documents
         {% else %}
         <a href="/documents">Documents</a>
         {% endif %}
@@ -25,6 +25,14 @@
         New Document
         {% else %}
         <a href="/documents/new">New Document</a>
+        {% endif %}
+      </span>
+      
+      <span>
+        {% if active == "documentimages" %}
+        Images
+        {% else %}
+        <a href="/documentimages?done=false">Images</a>
         {% endif %}
       </span>
   

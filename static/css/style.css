@@ -13,8 +13,8 @@
 }
 .date { white-space: nowrap; }
 body {
-    margin: 30px;
-    margin-left: 60px;
+    margin: 20px;
+    margin-top: 100px;
 }
 .details { width: 640px; }
 
@@ -24,6 +24,12 @@ body {
 
 .list li {
     clear: both;
+}
+
+fieldset {
+    border: 0;
+    margin: 0px;
+    padding: 0;
 }
 
 input.receipt {
@@ -58,11 +64,22 @@ a:visited {
 }
 
 nav {
-    margin-bottom: 40px;
+    position: fixed;
+    top: -20px;
+    background-color: white;
+    padding-bottom: 20px;
 }
 
 nav span {
     margin-right: 20px;
+}
+
+form.filter {
+    position: fixed;
+    top: 40px;
+    background-color: white;
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
 
 #logo img {
@@ -109,11 +126,6 @@ tr.highlight {
     font-size: 1.2rem;
 }
 
-label {
-    display: block;
-    margin-top: 1em;
-}
-
 .autocomplete-suggestions {
     width: 800px !important;
     
@@ -145,6 +157,11 @@ a.btn {
     text-decoration: none;
 }
 
+a.active {
+    background-color: #555;
+    color: white;
+}
+
 table table {
     width: 100%;
     margin-bottom: .6em;
@@ -157,3 +174,27 @@ input.receipt {
 .parts-table img {
     height: 32px;
 }
+
+table.documentimages {
+    float: left;
+}
+
+table.documentimages td {
+    max-width: 300px;
+    overflow-wrap: break-word;
+}
+
+form.documentimage {
+    position: fixed;
+    top: 110px;
+    left: 395px;
+}
+
+iframe.documentimage {
+    position: fixed;
+    top: 110px;
+    right: 0;
+    width: calc(100vw - 690px);
+    height: calc(100vh - 125px);
+}
+
