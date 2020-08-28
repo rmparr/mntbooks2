@@ -6,6 +6,7 @@ create table documents (
   currency text,
   tax_code text,
   serial_id text, -- set by system
+  foreign_serial_id text,
   order_id text,
   payment_method text,
   line_items text,
