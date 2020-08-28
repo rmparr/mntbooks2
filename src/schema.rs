@@ -47,6 +47,7 @@ table! {
         currency -> Nullable<Text>,
         tax_code -> Nullable<Text>,
         serial_id -> Nullable<Text>,
+        foreign_serial_id -> Nullable<Text>,
         order_id -> Nullable<Text>,
         payment_method -> Nullable<Text>,
         line_items -> Nullable<Text>,
