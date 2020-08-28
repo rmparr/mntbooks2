@@ -25,7 +25,7 @@ pub fn get_all_bookings(conn: &SqliteConnection, q: &Query) -> Vec<Booking> {
     
     let s = match q.limit {
         Some(limit) => s.limit(limit),
-        _ => s.limit(1000)
+        _ => s
     };
 
     let s = match q.year {
