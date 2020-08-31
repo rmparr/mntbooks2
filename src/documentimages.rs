@@ -63,11 +63,6 @@ pub fn get_document_images(conn: &SqliteConnection, q: &Query) -> Vec<DocumentIm
     s.load::<DocumentImage>(conn).unwrap()
 }
 
-pub fn get_all_document_images(conn: &SqliteConnection) -> Vec<DocumentImage> {
-    let s = document_images.into_boxed();
-    s.load::<DocumentImage>(conn).unwrap()
-}
-
 pub fn update_document_image(conn: &SqliteConnection, di_update: &DocumentImageUpdate) -> Result<DocumentImage, diesel::result::Error> {
     let mut doc_img = document_images.find(&di_update.path).first::<DocumentImage>(conn)?;
     documents.find(&di_update.doc_id).first::<Document>(conn)?;

@@ -114,17 +114,20 @@ pub async fn add_document(
 
     let document = documents::create_document(&conn, &d);
 
-    let res = update_document_image(&conn, &DocumentImageUpdate {
+    match update_document_image(&conn, &DocumentImageUpdate {
         path: dif.path.clone(),
         doc_id: document.id.clone(),
         done: dif.done
-    });
+    }) {
+        Ok(_document_image) => {
+            let q = q.into_inner();
+            let qs = serde_qs::to_string(&q).unwrap();
+            let href = "/documentimages?".to_string() + &qs;
+            Ok(HttpResponse::Found().header(http::header::LOCATION, href).finish())
+        },
+        Err(e) => Err(error::ErrorBadRequest(format!("{:?}", e)))
+    }
 
-    let q = q.into_inner();
-    let qs = serde_qs::to_string(&q).unwrap();
-    let href = "/documentimages?".to_string() + &qs;
-
-    Ok(HttpResponse::Found().header(http::header::LOCATION, href).finish())
 }
 
 #[post("/documents.json")]

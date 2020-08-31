@@ -3,7 +3,6 @@ extern crate mntbooks;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 use chrono::prelude::*;
-use mntbooks::documentimages::get_all_document_images;
 use mntbooks::models::DocumentImage;
 use mntbooks::schema::document_images::dsl::document_images;
 use mntbooks::mntconfig::Config;
@@ -24,6 +23,11 @@ fn create_document_image(conn: &SqliteConnection, img_path: &str) -> DocumentIma
     let res = diesel::insert_into(document_images).values(&doc_img).execute(conn);
     println!("create_document_image result: {:?}", res);
     doc_img
+}
+
+pub fn get_all_document_images(conn: &SqliteConnection) -> Vec<DocumentImage> {
+    let s = document_images.into_boxed();
+    s.load::<DocumentImage>(conn).unwrap()
 }
 
 fn main() {
