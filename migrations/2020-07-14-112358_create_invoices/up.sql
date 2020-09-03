@@ -44,19 +44,18 @@ create table bookings (
   amount_cents integer not null,
   details text not null,
   currency text not null,
-  receipt_url text,
-  tax_code text,
+  tax_code text not null, -- TODO: replace with multiple tax amounts in line_items
   debit_account text not null,
   credit_account text not null,
-  txn_id text, -- transaction id in third-party system (bank, paypal)
+  txn_id text not null, -- transaction id in third-party system (bank, paypal)
   created_at text not null,
   updated_at text not null,
-  comment text,
-  done boolean
+  comment text not null,
+  done boolean not null
 );
 
 create table booking_docs (
   id integer not null primary key,
-  booking_id text, -- FIXME should be not null
-  doc_id text -- FIXME should be not null
+  booking_id text not null,
+  doc_id text not null
 );

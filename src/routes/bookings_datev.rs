@@ -234,11 +234,13 @@ pub async fn get_bookings_datev_csv(
         let mut amt = booking.amount_cents/100;
         let mut cents = booking.amount_cents%100;
 
-        let skip = if let Some(url) = booking.receipt_url {
+        /*let skip = if let Some(url) = booking.receipt_url {
             url.is_empty()
         } else {
             true
-        };
+        };*/
+
+        let skip = true;
 
         let docs:Vec<BookingDoc> = booking_docs.limit(1).filter(booking_id.eq(&booking.id))
             .load::<BookingDoc>(&conn).unwrap();
@@ -285,13 +287,9 @@ pub async fn get_bookings_datev_csv(
 
                 // TODO this is a workaround to deal with the legacy
                 // data where multiple doc image paths were just comma seperated
-                let booking_doc_id = match &booking_doc.doc_id {
-                    Some(d) => {
-                        let parts:Vec<&str> = d.split(',').collect();
-                        parts.first().unwrap().to_string()
-                    }
-                    _ => "".to_string()
-                };
+                let parts:Vec<&str> = booking_doc.doc_id.split(',').collect();
+                let booking_doc_id = parts.first().unwrap().to_string();
+                
                 let belegfeld = booking_doc_id.replace("/","-");
 
                 let d = DatevBooking {

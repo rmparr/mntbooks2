@@ -9,8 +9,8 @@ use crate::schema::*;
 #[derive(serde::Serialize, serde::Deserialize, Clone, Queryable, Insertable, Identifiable, Debug, Default)]
 pub struct BookingDoc {
     pub id: i32,
-    pub booking_id: Option<String>,
-    pub doc_id: Option<String>,
+    pub booking_id: String,
+    pub doc_id: String,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Queryable, Insertable, Identifiable, Debug, Default)]
@@ -20,15 +20,14 @@ pub struct Booking {
     pub amount_cents: i32,
     pub details: String,
     pub currency: String,
-    pub receipt_url: Option<String>,
-    pub tax_code: Option<String>,
+    pub tax_code: String,
     pub debit_account: String,
     pub credit_account: String,
-    pub txn_id: Option<String>,
+    pub txn_id: String,
     pub created_at: String,
     pub updated_at: String,
-    pub comment: Option<String>,
-    pub done: Option<bool>,
+    pub comment: String,
+    pub done: bool,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Queryable, Insertable, Identifiable, Debug, Default)]

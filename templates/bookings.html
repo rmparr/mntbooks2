@@ -14,8 +14,8 @@
         <th>Acc</th>
         <th>&rarr; Acc</th>
         <th class="details">Details</th>
-        <th>Documents (receipt URL)</th>
         <th>Documents (BookingDocs)</th>
+        <th></th>
       </tr>
       {% for b in bookings_plus_docs %}
       <tr>
@@ -25,13 +25,15 @@
         <td>{{ b.booking.debit_account }}</td>
         <td>{{ b.booking.credit_account }}</td>
         <td>{{ b.booking.details }}</td>
-        <td>{{ b.booking.receipt_url }}</td>
-	<td>
-	  <ul>
-          {% for d in b.docs %}
-	  <li><a href="/documents/{{ d }}">{{ d }}</a>
-          {% endfor %}
-	  </ul>
+	      <td>
+	        <ul>
+            {% for d in b.docs %}
+	          <li><a href="/documentimages?doc_id={{ d }}">{{ d }}</a>
+            {% endfor %}
+	        </ul>
+        </td>
+        <td>
+          <a href="/bookings/{{ b.booking.id }}">Edit</a>
         </td>
       </tr>
       {% endfor %}

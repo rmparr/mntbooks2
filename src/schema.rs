@@ -1,8 +1,8 @@
 table! {
     booking_docs (id) {
         id -> Integer,
-        booking_id -> Nullable<Text>,
-        doc_id -> Nullable<Text>,
+        booking_id -> Text,
+        doc_id -> Text,
     }
 }
 
@@ -13,15 +13,14 @@ table! {
         amount_cents -> Integer,
         details -> Text,
         currency -> Text,
-        receipt_url -> Nullable<Text>,
-        tax_code -> Nullable<Text>,
+        tax_code -> Text,
         debit_account -> Text,
         credit_account -> Text,
-        txn_id -> Nullable<Text>,
+        txn_id -> Text,
         created_at -> Text,
         updated_at -> Text,
-        comment -> Nullable<Text>,
-        done -> Nullable<Bool>,
+        comment -> Text,
+        done -> Bool,
     }
 }
 
