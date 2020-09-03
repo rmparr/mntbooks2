@@ -1,0 +1,40 @@
+{% import "macros.html" as macros %}
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="/css/style.css"></link>
+  </head>
+  <body>
+    {{ macros::nav(active="documents") }}
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>Date</th>
+        <th>Cur</th>
+        <th>Amount</th>
+        <th>Sales Acc</th>
+        <th>Customer Acc</th>
+        <th>Company</th>
+        <th class="details">Name</th>
+        <th>Document</th>
+      </tr>
+      {% for d in documents %}
+      <tr>
+        <td>{{ d.kind }}-{{ d.serial_id }}</td>
+        <td>{{ d.doc_date }}</td>
+        <td>{{ d.currency }}</td>
+        <td>{{ d.amount_cents/100.0 }}</td>
+        <td>{{ d.account }}</td>
+        <td>{{ d.customer_account }}</td>
+        <td>{{ d.customer_company }}</td>
+        <td>{{ d.customer_name }}</td>
+        <td>
+          <a href="/documentimages?doc_id={{ d.id }}">Image</a>
+          <a href="/documents/{{ d.id }}">HTML</a>
+          <a href="/documents/{{ d.id }}/copy">Copy</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </body>
+</html>

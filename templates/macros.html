@@ -13,18 +13,26 @@
       </span>
       
       <span>
-        {% if active == "invoices" %}
-        Invoices
+        {% if active == "documents" %}
+        Documents
         {% else %}
-        <a href="/invoices">Invoices</a>
+        <a href="/documents">Documents</a>
         {% endif %}
       </span>
       
       <span>
-        {% if active == "invoice_new" %}
-        New Invoice
+        {% if active == "document_new" %}
+        New Document
         {% else %}
-        <a href="/invoices/new">New Invoice</a>
+        <a href="/documents/new">New Document</a>
+        {% endif %}
+      </span>
+      
+      <span>
+        {% if active == "documentimages" %}
+        Images
+        {% else %}
+        <a href="/documentimages?done=false">Images</a>
         {% endif %}
       </span>
   

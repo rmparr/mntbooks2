@@ -1,0 +1,34 @@
+{% import "macros.html" as macros %}
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="/css/style.css"></link>
+  </head>
+  <body>
+    {{ macros::nav(active="documentimages") }}
+    <table>
+      <tr>
+        <th>Path</th>
+        <th>PDF Path</th>
+        <th>MIME</th>
+        <th>Doc ID</th>
+        <th>Text</th>
+        <th>Done</th>
+        <th>Created</th>
+        <th>Updated</th>
+      </tr>
+      {% for d in documentimages %}
+      <tr>
+        <td>{{ d.path }}</td>
+        <td>{{ d.pdf_path }}</td>
+        <td>{{ d.mime_type }}</td>
+        <td>{{ d.doc_id }}</td>
+        <td>{{ d.extracted_text }}</td>
+        <td>{{ d.done }}</td>
+        <td>{{ d.created_at }}</td>
+        <td>{{ d.updated_at }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </body>
+</html>

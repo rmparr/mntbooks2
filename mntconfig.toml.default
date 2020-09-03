@@ -25,3 +25,18 @@ invoice_signature_lines = [
   "Jane Doe",
   "CFO"
 ]
+
+docstore_path = "./docstore"
+
+datev_export_path = "./datev-export"
+datev_advisor_id = "123456"
+datev_client_id = "24242"
+
+[datev_account1_map]
+"shipping" = "4910"
+"consumables" = "3030"
+
+# mapping of ledger-style account names to counterparty (?) accounts
+[datev_account2_map]
+"amazon" = "70001"
+"dhl" = "71503"

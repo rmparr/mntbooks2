@@ -1,0 +1,71 @@
+{% import "macros.html" as macros %}
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="/css/style.css"></link>
+  </head>
+  <body>
+    {{ macros::nav(active="bookings") }}
+    
+    <form class="booking" method="POST" action="/bookings/{{ booking.id }}">
+      <h4>Booking {{ booking.id }}</h4>
+      <p>
+        Amount: {{booking.amount_cents}} {{booking.currency}}
+      </p>
+      <p>
+        Date: {{booking.booking_date}}
+      </p>
+      <p>
+        Details: {{booking.details}}
+      </p>
+      <p>
+        Txn: {{booking.txn_id}}
+      </p>
+      <fieldset>
+        <input name="credit_account" type="text" placeholder="credit_account" value="{{booking.credit_account}}">
+      </fieldset>
+      <fieldset>
+        <input name="debit_account" type="text" placeholder="debit_account" value="{{booking.debit_account}}">
+      </fieldset>
+      <fieldset>
+        <textarea name="comment" placeholder="comment">{{booking.comment}}</textarea>
+      </fieldset>
+      <fieldset>
+        <select name="done">
+          <option value="true" selected>True</option>
+          <option value="false">False</option>
+        </select>
+      </fieldset>
+      
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Date</th>
+          <th>Cur</th>
+          <th>Amount</th>
+          <th>Sales Acc</th>
+          <th>Customer Acc</th>
+          <th>Company</th>
+          <th class="details">Name</th>
+        </tr>
+        {% for d in documents %}
+        <tr>
+          <td><input type="checkbox" name="doc_ids[]" value="{{d.id}}"
+                     {% if d.id in doc_ids %}checked{% endif %}> {{ d.kind }}-{{ d.serial_id }}</td>
+          <td>{{ d.doc_date }}</td>
+          <td>{{ d.currency }}</td>
+          <td>{{ d.amount_cents/100.0 }}</td>
+          <td>{{ d.account }}</td>
+          <td>{{ d.customer_account }}</td>
+          <td>{{ d.customer_company }}</td>
+          <td>{{ d.customer_name }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+      
+      <fieldset>
+        <input type="submit" value="Save">
+      </fieldset>
+    </form>
+  </body>
+</html>

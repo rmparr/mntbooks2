@@ -1,8 +1,8 @@
 table! {
     booking_docs (id) {
         id -> Integer,
-        booking_id -> Nullable<Text>,
-        doc_id -> Nullable<Text>,
+        booking_id -> Text,
+        doc_id -> Text,
     }
 }
 
@@ -13,64 +13,64 @@ table! {
         amount_cents -> Integer,
         details -> Text,
         currency -> Text,
-        receipt_url -> Nullable<Text>,
-        tax_code -> Nullable<Text>,
+        tax_code -> Text,
         debit_account -> Text,
         credit_account -> Text,
-        txn_id -> Nullable<Text>,
+        txn_id -> Text,
         created_at -> Text,
         updated_at -> Text,
-        comment -> Nullable<Text>,
+        comment -> Text,
+        done -> Bool,
     }
 }
 
 table! {
-    documents (path) {
+    document_images (path) {
         path -> Text,
-        kind -> Text,
-        state -> Text,
-        doc_id -> Text,
-        doc_date -> Text,
-        amount_cents -> Integer,
-        account -> Nullable<Text>,
-        tags -> Text,
+        pdf_path -> Text,
+        mime_type -> Text,
+        doc_id -> Nullable<Text>,
+        extracted_text -> Text,
+        done -> Bool,
         created_at -> Text,
         updated_at -> Text,
     }
 }
 
 table! {
-    invoices (doc_id) {
-        doc_id -> Text,
+    documents (id) {
+        id -> Text,
         kind -> Text,
         doc_date -> Text,
-        amount_cents -> Integer,
-        currency -> Text,
-        tax_code -> Text,
+        amount_cents -> Nullable<Integer>,
+        currency -> Nullable<Text>,
+        tax_code -> Nullable<Text>,
+        serial_id -> Nullable<Text>,
+        foreign_serial_id -> Nullable<Text>,
         order_id -> Nullable<Text>,
-        payment_method -> Text,
-        line_items -> Text,
-        account -> Text,
-        customer_account -> Text,
+        payment_method -> Nullable<Text>,
+        line_items -> Nullable<Text>,
+        customer_account -> Nullable<Text>,
         customer_company -> Nullable<Text>,
-        customer_name -> Text,
-        customer_address_1 -> Text,
+        customer_name -> Nullable<Text>,
+        customer_address_1 -> Nullable<Text>,
         customer_address_2 -> Nullable<Text>,
-        customer_zip -> Text,
-        customer_city -> Text,
+        customer_zip -> Nullable<Text>,
+        customer_city -> Nullable<Text>,
         customer_state -> Nullable<Text>,
-        customer_country -> Text,
-        vat_included -> Text,
+        customer_country -> Nullable<Text>,
+        vat_included -> Nullable<Text>,
         replaces_id -> Nullable<Text>,
         replaced_by_id -> Nullable<Text>,
         created_at -> Text,
         updated_at -> Text,
+        account -> Nullable<Text>,
     }
 }
 
 allow_tables_to_appear_in_same_query!(
     booking_docs,
     bookings,
+    document_images,
     documents,
-    invoices,
 );
