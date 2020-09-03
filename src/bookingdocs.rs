@@ -9,7 +9,7 @@ use crate::schema::documents::dsl::*;
 
 use diesel::dsl::*;
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Debug)]
 pub struct BookingDocInsert {
     pub booking_id: String,
     pub doc_id: String,
@@ -33,14 +33,18 @@ pub fn create_bookingdoc(conn: &SqliteConnection, new_booking_doc: &BookingDocIn
 
     let doc = BookingDoc {
         id: new_id,
-        booking_id: Some((&new_booking_doc.booking_id).to_string()),
-        doc_id: Some((&new_booking_doc.doc_id).to_string()),
+        booking_id: (&new_booking_doc.booking_id).to_string(),
+        doc_id: (&new_booking_doc.doc_id).to_string(),
     };
 
     let res = diesel::insert_into(booking_docs).values(&doc).execute(conn);
     println!("create_bookingdoc result: {:?}", res);
 
     Ok(doc)
+}
+
+pub fn delete_all_bookingdocs_for_booking(conn: &SqliteConnection, for_booking_id: &String) {
+    diesel::delete(booking_docs.filter(booking_id.eq(for_booking_id))).execute(conn);
 }
 
 pub fn get_bookingdocs(conn: &SqliteConnection, booking: &Booking) -> Vec<BookingDoc> {

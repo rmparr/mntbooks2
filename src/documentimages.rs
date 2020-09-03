@@ -12,6 +12,7 @@ pub struct Query {
     pub month: Option<i32>,
     pub text: Option<String>,
     pub done: Option<bool>,
+    pub doc_id: Option<String>,
     pub offset: Option<i64>,
     pub limit: Option<i64>,
     pub active: Option<String>
@@ -55,6 +56,11 @@ pub fn get_document_images(conn: &SqliteConnection, q: &Query) -> Vec<DocumentIm
         _ => s
     };
 
+    let s = match &q.doc_id {
+        Some(did) => s.filter(doc_id.eq(did)),
+        _ => s
+    };
+    
     let s = match q.done {
         Some(d) => s.filter(done.eq(d)),
         _ => s

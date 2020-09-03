@@ -1,0 +1,72 @@
+{% import "macros.html" as macros %}
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="/css/style.css"></link>
+  </head>
+  <body>
+    {{ macros::nav(active="documentimages") }}
+
+    <form class="filter" method="GET" action="/documentimages">
+      <fieldset>
+        <input name="text" type="search" placeholder="Search">
+        <label>
+          Done:
+          <select name="done">
+            <option value="">All</option>
+            <option value="true">True</option>
+            <option value="false" selected>False</option>
+          </select>
+        </label>
+        <input type="submit" value="Filter">
+      </fieldset>
+    </form>
+    
+    <table class="documentimages">
+      <tr>
+        <th>Path</th>
+      </tr>
+      {% for d in documentimages %}
+      <tr>
+        <td><a href="?{{ query }}&active={{ d.path|urlencode_strict }}#{{ loop.index }}"
+               name="{{ loop.index }}"
+               {% if active_di and active_di.path == d.path %}class="active"{% endif %}>{{ d.path }}</a></td>
+      </tr>
+      {% endfor %}
+    </table>
+
+    {% if active_di %}
+    <form class="documentimage" method="POST" action="/documents?{{ query }}">
+      <h4>Document</h4>
+      <input name="path" type="hidden" value="{{ active_di.path }}">
+      <fieldset>
+        <input name="doc_date" type="text" placeholder="doc_date">
+      </fieldset>
+      <fieldset>
+        <input name="foreign_serial_id" type="text" placeholder="foreign_serial_id">
+      </fieldset>
+      <fieldset>
+        <input name="amount_cents" type="text" placeholder="amount_cents">
+      </fieldset>
+      <fieldset>
+        <input name="currency" type="text" placeholder="currency" value="EUR">
+      </fieldset>
+      <fieldset>
+        <input name="customer_account" type="text" placeholder="customer_account">
+      </fieldset>
+      <fieldset>
+        <select name="done">
+          <option value="true" selected>True</option>
+          <option value="false">False</option>
+        </select>
+      </fieldset>
+      <fieldset>
+        <input type="submit" value="Save">
+      </fieldset>
+    </form>
+
+    <iframe src="/docstore/{{ active_di.path }}" class="documentimage">
+    </iframe>
+    {% endif %}
+  </body>
+</html>
