@@ -44,7 +44,7 @@ pub fn create_bookingdoc(conn: &SqliteConnection, new_booking_doc: &BookingDocIn
 }
 
 pub fn delete_all_bookingdocs_for_booking(conn: &SqliteConnection, for_booking_id: &String) {
-    diesel::delete(booking_docs.filter(booking_id.eq(for_booking_id))).execute(conn);
+    diesel::delete(booking_docs.filter(booking_id.eq(for_booking_id))).execute(conn).unwrap();
 }
 
 pub fn get_bookingdocs(conn: &SqliteConnection, booking: &Booking) -> Vec<BookingDoc> {

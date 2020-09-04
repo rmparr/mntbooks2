@@ -127,7 +127,7 @@ pub async fn post_bookings(
                             booking_id: booking_id.clone(),
                             doc_id: di.clone()
                         };
-                        bookingdocs::create_bookingdoc(&conn, bdi);
+                        bookingdocs::create_bookingdoc(&conn, bdi).unwrap();
                     }
                 },
                 _ => ()

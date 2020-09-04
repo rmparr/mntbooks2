@@ -124,7 +124,7 @@ pub fn create_or_update_booking(conn: &SqliteConnection, new_booking: &NewBookin
         _ => ()
     }
 
-    diesel::replace_into(bookings).values(&b).execute(conn);
+    diesel::replace_into(bookings).values(&b).execute(conn).unwrap();
 
     b
 }
@@ -136,5 +136,5 @@ pub fn update_booking(conn: &SqliteConnection, booking_id: &String, update: &Upd
               comment.eq(&update.comment),
               done.eq(update.done)
         ))
-        .execute(conn);
+        .execute(conn).unwrap();
 }
