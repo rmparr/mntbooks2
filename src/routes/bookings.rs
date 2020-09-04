@@ -55,7 +55,6 @@ pub async fn get_booking(
     tmpl: web::Data<tera::Tera>,
     pool: web::Data<DbPool>,
     path: web::Path<(String,)>,
-    q: web::Query<bookings::Query>
 ) -> Result<HttpResponse, Error> {
     let conn = pool.get().expect("couldn't get db connection from pool");
     let booking = bookings::get_booking_by_id(&conn, &path.0).unwrap();
@@ -116,7 +115,7 @@ pub async fn post_bookings(
     let qs = serde_qs::Config::new(1, false); // max_depth, strict
     match qs.deserialize_str(&text) {
         Ok(params) => {
-            let b = bookings::update_booking(&conn, booking_id, &params);
+            bookings::update_booking(&conn, booking_id, &params);
             
             // update the booking -> document associations
 
