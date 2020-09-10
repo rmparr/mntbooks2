@@ -180,6 +180,13 @@ struct DatevBooking {
     land: String
 }
 
+fn booking_datev_date(b: &Booking) -> String {
+    let year =  &b.booking_date[0..4];
+    let mon = &b.booking_date[5..7];
+    let day = &b.booking_date[8..10];
+    format!("{:04}{:02}{:02}",year,mon,day)
+}
+
 #[get("/bookings-datev")]
 pub async fn get_bookings_datev_csv(
     pool: web::Data<DbPool>,
@@ -196,6 +203,12 @@ pub async fn get_bookings_datev_csv(
     fs::create_dir(&export_folder).unwrap();
     fs::create_dir(&export_folder.join("Belege")).unwrap();
 
+    // determine date range of selected bookings
+    let mut dates = bookings.iter().map(|b| {
+        booking_datev_date(&b)
+    }).collect::<Vec<String>>();
+    dates.sort();
+
     let header1 = DatevHeader {
         datev_format: "EXTF".to_string(),
         version: "700".to_string(),
@@ -206,10 +219,10 @@ pub async fn get_bookings_datev_csv(
         exportiert_von: "mntbooks2".to_string(),
         berater: config.datev_advisor_id.clone(),
         mandant: config.datev_client_id.clone(),
-        wj_beginn: "20200101".to_string(), // FIXME
+        wj_beginn: format!("{:04}0101",dates.first().unwrap()[0..4].to_string()), // FIXME
         sachkonten_laenge: "4".to_string(),
-        datum_von: "20200101".to_string(), // FIXME
-        datum_bis: "20201231".to_string(), // FIXME
+        datum_von: dates.first().unwrap().clone(),
+        datum_bis: dates.last().unwrap().clone(),
         festschreibung: "0".to_string(),
         wkz: "EUR".to_string(),
         ..Default::default()
