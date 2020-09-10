@@ -45,6 +45,7 @@ pub async fn get_bookings(
     let mut ctx = tera::Context::new();
     ctx.insert("bookings_plus_docs", &bookings_plus_docs);
     ctx.insert("q", &query);
+    ctx.insert("query", &serde_qs::to_string(&query).unwrap());
     ctx.insert("bookings_query", &base64::encode(serde_qs::to_string(&query).unwrap().as_bytes()));
     
     let s = tmpl.render("bookings.html", &ctx)

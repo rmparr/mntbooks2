@@ -23,6 +23,8 @@
         <input type="submit" value="Filter">
       </fieldset>
     </form>
+
+    <h3>{{ bookings_plus_docs | length }} Bookings</h3>
     
     <table>
       <tr>
@@ -37,12 +39,12 @@
       </tr>
       {% for b in bookings_plus_docs %}
       <tr>
-        <td>{{ b.booking.booking_date }}</td>
+        <td class="date">{{ b.booking.booking_date }}</td>
         <td>{{ b.booking.currency }}</td>
         <td>{{ b.booking.amount_cents/100.0 }}</td>
         <td>{{ b.booking.debit_account }}</td>
         <td>{{ b.booking.credit_account }}</td>
-        <td>{{ b.booking.details }}</td>
+        <td class="details">{{ b.booking.details }}</td>
 	      <td>
 	        <ul>
             {% for d in b.docs %}
@@ -56,5 +58,9 @@
       </tr>
       {% endfor %}
     </table>
+
+    <p>
+      <a href="/bookings-datev?{{ query }}">DATEV Export</a>
+    </p>
   </body>
 </html>
