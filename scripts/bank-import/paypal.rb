@@ -142,6 +142,7 @@ if maxnum>-1
     end
 
     details = {
+      details_type: "paypal",
       txn_type: result["L_TYPE#{n}"],
       email: result["L_EMAIL#{n}"],
       name: result["L_NAME#{n}"],
