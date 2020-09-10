@@ -126,10 +126,6 @@ pub fn get_documents(conn: &SqliteConnection, q: &Query) -> Vec<Document> {
 }
 
 // TODO update document_
-// FIXME arbitrary limit
-pub fn get_all_documents(conn: &SqliteConnection) -> Vec<Document> {
-    documents.limit(1000).load::<Document>(conn).unwrap()
-}
 
 pub fn get_document_by_id(conn: &SqliteConnection, uuid: &String) -> Document {
     documents.find(uuid).first(conn).unwrap()
