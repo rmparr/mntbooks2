@@ -4,17 +4,26 @@ update book set credit_txn_id=debit_txn_id where credit_txn_id is null;
 .mode csv
 .output mntbooks-legacy-export.csv
 
-select id, date as booking_date, amount_cents, details, currency, receipt_url, tax_code, debit_account, credit_account, credit_txn_id as txn_id, created_at, updated_at, comment, 1 from book;
+-- TODO: replace old hashed ids with uuids after import
+
+select id, substr(date,1,10) as booking_date, amount_cents, details, currency, tax_code, debit_account, credit_account, credit_txn_id as txn_id, created_at, updated_at, comment, 1 from book;
 
 .output mntbooks-legacy-export-bookingdocs.csv
-select book.rowid, id, docid from book, documents where path=receipt_url and docid is NOT NULL;
+create table temp (
+  booking_id text not null,
+  doc_id text not null
+);
+insert into temp select id, path from book, documents where receipt_url like "%"||path||"%" and docid is NOT NULL;
+select rowid,* from temp;
+drop table temp;
 
 .output mntbooks-legacy-export-docimages.csv
-select path,path,"application/pdf",docid,tags,1,date,date from documents where docid is NOT NULL and docid is NOT "" and state="defer";
+select path,path,"application/pdf",path,"",1,date,date from documents where docid is NOT NULL and docid is NOT "" and state="defer";
 
 .output mntbooks-legacy-export-documents.csv
-select id,"invoice",invoice_date,amount_cents,currency,tax_code,id,order_id,payment_method,line_items,customer_account,customer_company,customer_name,customer_address_1,customer_address_2,customer_zip,customer_city,customer_state,customer_country,vat_included,replaces_id,replaced_by_id,created_at,updated_at,sales_account from invoices;
+select id,"invoice",invoice_date,amount_cents,currency,tax_code,id,NULL,order_id,payment_method,line_items,customer_account,customer_company,customer_name,customer_address_1,customer_address_2,customer_zip,customer_city,customer_state,customer_country,vat_included,replaces_id,replaced_by_id,created_at,updated_at,sales_account from invoices;
 
-select docid,"receipt",date,sum*100,"UNK",NULL,docid,NULL,NULL,NULL,NULL,tags,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,created_at,updated_at,NULL from documents where docid is NOT NULL and docid is NOT "" and state="defer";
+-- TODO: correct currency after the fact
+select path,"receipt",date,sum*100,"EUR",NULL,NULL,docid,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,created_at,updated_at,tags from documents where docid is NOT NULL and docid is NOT "" and state="defer";
 
 .quit
