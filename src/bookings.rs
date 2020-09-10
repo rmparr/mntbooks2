@@ -8,16 +8,16 @@ use uuid::Uuid;
 use chrono::prelude::*;
 use crate::util::utc_iso_date_string;
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize,serde::Serialize)]
 pub struct Query {
-    year: Option<i32>,
-    month: Option<i32>,
+    year: Option<String>,
+    month: Option<String>,
     credit_account: Option<String>,
     debit_account: Option<String>,
     details: Option<String>,
     offset: Option<i64>,
     limit: Option<i64>,
-    done: Option<bool>
+    done: Option<String>
 }
 
 #[derive(serde::Deserialize)]
@@ -38,7 +38,8 @@ pub struct UpdateBooking {
     pub comment: String,
     pub done: bool,
     pub doc_ids: Option<Vec<String>>,
-    pub stay: bool // stay on the edit booking page?
+    pub stay: bool, // stay on the edit booking page?
+    pub bookings_query: Option<String> // query string for bookings table
 }
 
 pub fn get_all_bookings(conn: &SqliteConnection, q: &Query) -> Vec<Booking> {
@@ -55,13 +56,13 @@ pub fn get_all_bookings(conn: &SqliteConnection, q: &Query) -> Vec<Booking> {
         _ => s
     };
 
-    let s = match q.year {
-        Some(year) => s.filter(booking_date.like(format!("{:04}-%", year))),
+    let s = match &q.year {
+        Some(year) if year.len()>=4 => s.filter(booking_date.like(format!("{}-%", year))),
         _ => s
     };
     
-    let s = match q.month {
-        Some(month) => s.filter(booking_date.like(format!("%-{:02}-%", month))),
+    let s = match &q.month {
+        Some(month) if month.len()>=1 => s.filter(booking_date.like(format!("%-{:02}-%", month.parse::<i32>().unwrap()))),
         _ => s
     };
     
@@ -80,8 +81,9 @@ pub fn get_all_bookings(conn: &SqliteConnection, q: &Query) -> Vec<Booking> {
         _ => s
     };
 
-    let s = match q.done {
-        Some(d) => s.filter(done.eq(d)),
+    let s = match &q.done {
+        Some(d) if d=="true" => s.filter(done.eq(true)),
+        Some(d) if d=="false" => s.filter(done.eq(false)),
         _ => s
     };
 

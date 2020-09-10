@@ -5,47 +5,32 @@
       </span>
       
       <span>
-        {% if active == "bookings" %}
-        Book
-        {% else %}
-        <a href="/bookings">Book</a>
-        {% endif %}
+        <a href="/bookings" {% if active == "bookings" %}class="active"{% endif %}>Book</a>
       </span>
       
       <span>
-        {% if active == "documents" %}
-        Documents
-        {% else %}
-        <a href="/documents">Documents</a>
-        {% endif %}
+        <a href="/documents" {% if active == "documents" %}class="active"{% endif %}>Documents</a>
       </span>
       
       <span>
-        {% if active == "document_new" %}
-        New Document
-        {% else %}
-        <a href="/documents/new">New Document</a>
-        {% endif %}
+        <a href="/documents/new" {% if active == "document_new" %}class="active"{% endif %}>New Document</a>
       </span>
       
       <span>
-        {% if active == "documentimages" %}
-        Images
-        {% else %}
-        <a href="/documentimages?done=false">Images</a>
-        {% endif %}
+        <a href="/documentimages?done=false" {% if active == "documentimages" %}class="active"{% endif %}>Images</a>
       </span>
   
     </nav>
 {% endmacro nav %}
 
-{% macro documents_filter(action) %}
+{% macro documents_filter(action,bookings_query) %}
     
     <form class="filter" method="GET" action="{{action}}">
       <fieldset>
         <input name="text" type="search" placeholder="Search">
         <input name="amount" type="number" placeholder="Amount (Cents)" value="0">
         <input type="submit" value="Filter">
+        <input name="bookings_query" type="hidden" value="{{bookings_query}}">
       </fieldset>
     </form>
     

@@ -52,7 +52,7 @@
         <input name="currency" type="text" placeholder="currency" value="EUR">
       </fieldset>
       <fieldset>
-        <input name="customer_account" type="text" placeholder="customer_account">
+        <input name="customer_account" type="text" placeholder="customer_account" list="accounts">
       </fieldset>
       <fieldset>
         <select name="done">
@@ -63,6 +63,11 @@
       <fieldset>
         <input type="submit" value="Save">
       </fieldset>
+      <datalist id="accounts">
+        {% for a in accounts %}
+        <option value="{{a}}"></option>
+        {% endfor %}
+      </datalist>
     </form>
 
     <iframe src="/docstore/{{ active_di.path }}" class="documentimage">

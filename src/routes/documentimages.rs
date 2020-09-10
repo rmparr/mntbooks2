@@ -4,6 +4,7 @@ use diesel::sqlite::SqliteConnection;
 type DbPool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
 use crate::documentimages;
 use crate::models::DocumentImage;
+use crate::bookingdocs;
 
 #[get("/documentimages.json")]
 pub async fn get_documentimages_json(
@@ -26,6 +27,7 @@ pub async fn get_documentimages(
 
     let mut ctx = tera::Context::new();
     ctx.insert("documentimages", &results);
+    ctx.insert("accounts", &bookingdocs::get_all_accounts(&conn));
 
     let active_di:Option<&DocumentImage> = match &q.active {
         Some(a) => results.iter().find(|di| &di.path == a),

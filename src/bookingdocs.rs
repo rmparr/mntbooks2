@@ -51,3 +51,25 @@ pub fn get_bookingdocs(conn: &SqliteConnection, booking: &Booking) -> Vec<Bookin
     let results = booking_docs.filter(booking_id.eq(&booking.id)).load::<BookingDoc>(conn).unwrap();
     results
 }
+
+pub fn get_all_accounts(conn: &SqliteConnection) -> Vec<String> {
+    let bs = bookings.load::<Booking>(conn).unwrap();
+    let ds = documents.load::<Document>(conn).unwrap();
+
+    let mut accounts:Vec<String> = vec!();
+    
+    for b in bs {
+        accounts.push(b.debit_account);
+        accounts.push(b.credit_account);
+    }
+    for d in ds {
+        match d.customer_account {
+            Some(acc) => accounts.push(acc),
+            _ => ()
+        };
+    }
+
+    accounts.sort();
+    accounts.dedup();
+    return accounts
+}

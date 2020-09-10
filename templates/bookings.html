@@ -6,6 +6,24 @@
   </head>
   <body>
     {{ macros::nav(active="bookings") }}
+    
+    <form class="filter" method="GET" action="/bookings">
+      <fieldset>
+        <input name="year" type="number" placeholder="Year" value="{{q.year}}">
+        <input name="month" type="number" placeholder="Month" value="{{q.month}}">
+        <input name="details" type="search" placeholder="Search" value="{{q.details}}">
+        <label>
+          Done:
+          <select name="done">
+            <option value="">All</option>
+            <option value="true" {% if q.done=="true" %}selected{% endif %}>True</option>
+            <option value="false" {% if q.done=="false" %}selected{% endif %}>False</option>
+          </select>
+        </label>
+        <input type="submit" value="Filter">
+      </fieldset>
+    </form>
+    
     <table>
       <tr>
         <th>Date</th>
@@ -33,7 +51,7 @@
 	        </ul>
         </td>
         <td>
-          <a href="/bookings/{{ b.booking.id }}">Edit</a>
+          <a href="/bookings/{{ b.booking.id }}?bookings_query={{ bookings_query }}">Edit</a>
         </td>
       </tr>
       {% endfor %}

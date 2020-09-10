@@ -30,7 +30,8 @@ pub struct Query {
     pub month: Option<i32>,
     pub offset: Option<i64>,
     pub limit: Option<i64>,
-    pub text: Option<String>
+    pub text: Option<String>,
+    pub bookings_query: Option<String> // query string for bookings table
 }
 
 pub fn line_items(doc: &Document) -> Vec<LineItem> {

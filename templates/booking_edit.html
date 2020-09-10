@@ -7,7 +7,7 @@
   <body>
     {{ macros::nav(active="bookings") }}
       
-    {{ macros::documents_filter(action=filter_action) }}
+    {{ macros::documents_filter(action=filter_action,bookings_query=bookings_query) }}
     
     <form class="booking" method="POST" action="/bookings/{{ booking.id }}">
       <h4>Booking {{ booking.id }}</h4>
@@ -24,10 +24,10 @@
         Txn: {{booking.txn_id}}
       </p>
       <fieldset>
-        <input name="credit_account" type="text" placeholder="credit_account" value="{{booking.credit_account}}">
+        <input name="credit_account" type="text" placeholder="credit_account" value="{{booking.credit_account}}" list="accounts">
       </fieldset>
       <fieldset>
-        <input name="debit_account" type="text" placeholder="debit_account" value="{{booking.debit_account}}">
+        <input name="debit_account" type="text" placeholder="debit_account" value="{{booking.debit_account}}" list="accounts">
       </fieldset>
       <fieldset>
         <textarea name="comment" placeholder="comment">{{booking.comment}}</textarea>
@@ -38,6 +38,13 @@
           <option value="false">False</option>
         </select>
       </fieldset>
+      <input name="bookings_query" type="hidden" value="{{bookings_query}}">
+      
+      <datalist id="accounts">
+        {% for a in accounts %}
+        <option value="{{a}}"></option>
+        {% endfor %}
+      </datalist>
       
       <table>
         <tr>

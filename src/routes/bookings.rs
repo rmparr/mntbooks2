@@ -8,6 +8,7 @@ use crate::bookingdocs;
 use crate::documents;
 use crate::models::*;
 
+use base64;
 use bytes::Bytes;
 
 #[derive(serde::Serialize)]
@@ -40,8 +41,11 @@ pub async fn get_bookings(
         bookings_plus_docs.push(booking_plus_docs);
     }
 
+    let query = q.into_inner();
     let mut ctx = tera::Context::new();
     ctx.insert("bookings_plus_docs", &bookings_plus_docs);
+    ctx.insert("q", &query);
+    ctx.insert("bookings_query", &base64::encode(serde_qs::to_string(&query).unwrap().as_bytes()));
     
     let s = tmpl.render("bookings.html", &ctx)
         .map_err(|e| error::ErrorInternalServerError(format!("Template error: {:?}", e)))
@@ -78,7 +82,9 @@ pub async fn get_booking(
     ctx.insert("doc_ids", &doc_ids);
     ctx.insert("documents", &docs);
     ctx.insert("filter_action", &format!("/bookings/{}", &booking.id));
-    
+    ctx.insert("bookings_query", &docq.bookings_query);
+    ctx.insert("accounts", &bookingdocs::get_all_accounts(&conn));
+
     let s = tmpl.render("booking_edit.html", &ctx)
         .map_err(|e| error::ErrorInternalServerError(format!("Template error: {:?}", e)))
         .unwrap();
@@ -143,9 +149,16 @@ pub async fn post_bookings(
             }
             
             let href = if params.stay {
-                format!("/bookings/{}", booking_id) // TODO: ?".to_string() + &qs;
+                match params.bookings_query {
+                    Some(q) => format!("/bookings/{}?bookings_query={}", booking_id, &q),
+                    _ => format!("/bookings/{}", booking_id)
+                }
             } else {
-                "/bookings".to_string()
+                let query_string = match &params.bookings_query {
+                    Some(s) if s.len()>0 => String::from_utf8(base64::decode(s).unwrap()).unwrap(),
+                    _ => "".to_string()
+                };
+                "/bookings?".to_string()+&query_string
             };
 
             Ok(HttpResponse::Found().header(http::header::LOCATION, href).finish())
