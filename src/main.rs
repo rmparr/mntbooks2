@@ -61,8 +61,10 @@ async fn main() -> std::io::Result<()> {
     // Start HTTP server
     // FIXME: why move?
     HttpServer::new(move || {
-        let tera =
+        let mut tera =
             Tera::new(concat!(env!("CARGO_MANIFEST_DIR"), "/templates/**/*")).unwrap();
+
+        tera.register_filter("money", util::fmt_money);
         
         App::new()
             // tera templating

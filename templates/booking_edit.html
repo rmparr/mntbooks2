@@ -12,7 +12,7 @@
     <form class="booking" method="POST" action="/bookings/{{ booking.id }}">
       <h4>Booking {{ booking.id }}</h4>
       <p>
-        Amount: {{booking.amount_cents}} {{booking.currency}}
+        Amount: {{booking.amount_cents | money}} {{booking.currency}}
       </p>
       <p>
         Date: {{booking.booking_date}}
@@ -63,7 +63,7 @@
                      {% if d.id in doc_ids %}checked{% endif %}> {{ d.kind }}-{{ d.serial_id }}</td>
           <td>{{ d.doc_date }}</td>
           <td>{{ d.currency }}</td>
-          <td>{{ d.amount_cents/100.0 }}</td>
+          <td>{{ d.amount_cents | money }}</td>
           <td>{{ d.account }}</td>
           <td>{{ d.customer_account }}</td>
           <td>{{ d.customer_company }}</td>

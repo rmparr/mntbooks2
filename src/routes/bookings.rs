@@ -10,6 +10,7 @@ use crate::models::*;
 
 use base64;
 use bytes::Bytes;
+use std::collections::HashMap;
 
 #[derive(serde::Serialize)]
 struct BookingPlusDocs {
@@ -26,9 +27,14 @@ pub async fn get_bookings(
     let conn = pool.get().expect("couldn't get db connection from pool");
 
     let results:Vec<Booking> = bookings::get_all_bookings(&conn, &q);
-
+    let mut account_sums:HashMap<String,i32> = HashMap::new();
+    
     let mut bookings_plus_docs:Vec<BookingPlusDocs> = Vec::new();
     for booking in results {
+        // calculate some stats
+        *account_sums.entry(booking.credit_account.clone()).or_insert(0) += booking.amount_cents;
+        *account_sums.entry(booking.debit_account.clone()).or_insert(0) -= booking.amount_cents;
+        
         let booking_docs = bookingdocs::get_bookingdocs(&conn, &booking);
         let mut doc_ids: Vec<String> = Vec::new();
         for booking_doc in booking_docs {
@@ -47,7 +53,8 @@ pub async fn get_bookings(
     ctx.insert("q", &query);
     ctx.insert("query", &serde_qs::to_string(&query).unwrap());
     ctx.insert("bookings_query", &base64::encode(serde_qs::to_string(&query).unwrap().as_bytes()));
-    
+    ctx.insert("account_sums", &account_sums);
+
     let s = tmpl.render("bookings.html", &ctx)
         .map_err(|e| error::ErrorInternalServerError(format!("Template error: {:?}", e)))
         .unwrap();

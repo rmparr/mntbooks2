@@ -12,6 +12,8 @@
         <input name="year" type="number" placeholder="Year" value="{{q.year}}">
         <input name="month" type="number" placeholder="Month" value="{{q.month}}">
         <input name="details" type="search" placeholder="Search" value="{{q.details}}">
+        <input name="debit_account" type="text" placeholder="Debit Account" value="{{q.debit_account}}">
+        <input name="credit_account" type="text" placeholder="Credit Account" value="{{q.credit_account}}">
         <label>
           Done:
           <select name="done">
@@ -30,7 +32,7 @@
       <tr>
         <th>Date</th>
         <th>Cur</th>
-        <th>Amount</th>
+        <th class="amt">Amount</th>
         <th>Acc</th>
         <th>&rarr; Acc</th>
         <th class="details">Details</th>
@@ -41,7 +43,7 @@
       <tr>
         <td class="date">{{ b.booking.booking_date }}</td>
         <td>{{ b.booking.currency }}</td>
-        <td>{{ b.booking.amount_cents/100.0 }}</td>
+        <td class="amt">{{ b.booking.amount_cents | money }}</td>
         <td>{{ b.booking.debit_account }}</td>
         <td>{{ b.booking.credit_account }}</td>
         <td class="details">{{ b.booking.details }}</td>
@@ -55,6 +57,18 @@
         <td>
           <a href="/bookings/{{ b.booking.id }}?bookings_query={{ bookings_query }}">Edit</a>
         </td>
+      </tr>
+      {% endfor %}
+      {% for k,v in account_sums %}
+      <tr>
+        <td></td>
+        <td></td>
+        <td class="amt">{{v | money}}</td>
+        <td>{{k}}</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
       </tr>
       {% endfor %}
     </table>

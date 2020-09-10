@@ -32,22 +32,8 @@ fieldset {
     padding: 0;
 }
 
-input.receipt {
-    width: 500px;
-}
-
-input.comment {
-    width: 400px;
-    border: none;
-    font-size: inherit;
-    line-height: inherit;
-}
-
-input.account {
-    width: 300px;
-    border: none;
-    font-size: inherit;
-    line-height: inherit;
+input[name=year], input[name=month] {
+    width: 60px;
 }
 
 a {
@@ -102,6 +88,10 @@ td, th {
     border-bottom: 1px solid #999;
     padding: 5px;
     text-align: left;
+}
+
+td.amt {
+    text-align: right;
 }
 
 table {
