@@ -37,4 +37,16 @@
       </span>
   
     </nav>
-{% endmacro input %}
+{% endmacro nav %}
+
+{% macro documents_filter(action) %}
+    
+    <form class="filter" method="GET" action="{{action}}">
+      <fieldset>
+        <input name="text" type="search" placeholder="Search">
+        <input name="amount" type="number" placeholder="Amount (Cents)" value="0">
+        <input type="submit" value="Filter">
+      </fieldset>
+    </form>
+    
+{% endmacro documents_filter %}

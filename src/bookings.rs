@@ -37,7 +37,8 @@ pub struct UpdateBooking {
     pub credit_account: String,
     pub comment: String,
     pub done: bool,
-    pub doc_ids: Option<Vec<String>>
+    pub doc_ids: Option<Vec<String>>,
+    pub stay: bool // stay on the edit booking page?
 }
 
 pub fn get_all_bookings(conn: &SqliteConnection, q: &Query) -> Vec<Booking> {

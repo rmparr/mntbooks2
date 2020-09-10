@@ -55,20 +55,29 @@ pub async fn get_booking(
     tmpl: web::Data<tera::Tera>,
     pool: web::Data<DbPool>,
     path: web::Path<(String,)>,
+    docq: web::Query<documents::Query>,
 ) -> Result<HttpResponse, Error> {
     let conn = pool.get().expect("couldn't get db connection from pool");
     let booking = bookings::get_booking_by_id(&conn, &path.0).unwrap();
     let mut ctx = tera::Context::new();
+
+    let mut queried_docs = documents::get_documents(&conn, &docq);
+    let mut docs:Vec<Document> = vec!();
     
     let doc_ids:Vec<String> = bookingdocs::get_bookingdocs(&conn, &booking).iter().map(|bd| {
+        docs.push(documents::get_document_by_id(&conn, &bd.doc_id));
+        queried_docs.retain(|qd| {
+            qd.id != bd.doc_id
+        });
         bd.doc_id.clone()
     }).collect();
 
-    let docs = documents::get_all_documents(&conn);
+    docs.append(&mut queried_docs);
 
     ctx.insert("booking", &booking);
     ctx.insert("doc_ids", &doc_ids);
     ctx.insert("documents", &docs);
+    ctx.insert("filter_action", &format!("/bookings/{}", &booking.id));
     
     let s = tmpl.render("booking_edit.html", &ctx)
         .map_err(|e| error::ErrorInternalServerError(format!("Template error: {:?}", e)))
@@ -133,7 +142,12 @@ pub async fn post_bookings(
                 _ => ()
             }
             
-            let href = "/bookings"; // TODO: ?".to_string() + &qs;
+            let href = if params.stay {
+                format!("/bookings/{}", booking_id) // TODO: ?".to_string() + &qs;
+            } else {
+                "/bookings".to_string()
+            };
+
             Ok(HttpResponse::Found().header(http::header::LOCATION, href).finish())
         },
         Err(e) => Err(error::ErrorBadRequest(format!("{:?}", e)))

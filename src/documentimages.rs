@@ -28,8 +28,6 @@ pub struct DocumentImageUpdate {
 pub fn get_document_images(conn: &SqliteConnection, q: &Query) -> Vec<DocumentImage> {
     let s = document_images.into_boxed();
 
-    println!("query: {:?}", &q);
-
     let s = match q.offset {
         Some(offset) => s.offset(offset),
         _ => s

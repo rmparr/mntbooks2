@@ -23,6 +23,16 @@ pub struct LineItem {
     pub amount_cents: i32
 }
 
+#[derive(serde::Deserialize, serde::Serialize, Debug, Clone)]
+pub struct Query {
+    pub amount: Option<i32>,
+    pub year: Option<i32>,
+    pub month: Option<i32>,
+    pub offset: Option<i64>,
+    pub limit: Option<i64>,
+    pub text: Option<String>
+}
+
 pub fn line_items(doc: &Document) -> Vec<LineItem> {
     let mut items:Vec<LineItem> = Vec::new();
     if let Some(items_str) = &doc.line_items {
@@ -71,6 +81,47 @@ pub fn create_document(conn: &SqliteConnection, new_document: &Document) -> Docu
     println!("create_document result: {:?}", res);
 
     doc
+}
+
+pub fn get_documents(conn: &SqliteConnection, q: &Query) -> Vec<Document> {
+    let s = documents.into_boxed();
+
+    let s = match q.offset {
+        Some(offset) => s.offset(offset),
+        _ => s
+    };
+
+    let s = match q.limit {
+        Some(limit) => s.limit(limit),
+        _ => s
+    };
+    
+    let s = match q.year {
+        Some(year) => s.filter(crate::schema::documents::dsl::created_at.like(format!("{:04}-%", year))),
+        _ => s
+    };
+
+    let s = match q.month {
+        Some(month) => s.filter(crate::schema::documents::dsl::created_at.like(format!("%-{:02}-%", month))),
+        _ => s
+    };
+    
+    let s = match &q.text {
+        Some(t) => s.filter(foreign_serial_id.like(format!("%{}%", t))
+                            .or(customer_account.like(format!("%{}%", t)))
+                            .or(account.like(format!("%{}%", t)))
+                            .or(order_id.like(format!("%{}%", t)))
+                            .or(serial_id.like(format!("%{}%", t)))),
+        _ => s
+    };
+    
+    let s = match q.amount {
+        Some(amt) if (amt>0) => s.filter(amount_cents.gt(amt-100)
+                                         .and(amount_cents.lt(amt+100))),
+        _ => s
+    };
+
+    s.load::<Document>(conn).unwrap()
 }
 
 // TODO update document_

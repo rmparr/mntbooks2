@@ -6,6 +6,8 @@
   </head>
   <body>
     {{ macros::nav(active="bookings") }}
+      
+    {{ macros::documents_filter(action=filter_action) }}
     
     <form class="booking" method="POST" action="/bookings/{{ booking.id }}">
       <h4>Booking {{ booking.id }}</h4>
@@ -64,7 +66,8 @@
       </table>
       
       <fieldset>
-        <input type="submit" value="Save">
+        <button name="stay" value="true">Apply</button>
+        <button name="stay" value="false">OK</button>
       </fieldset>
     </form>
   </body>

@@ -40,10 +40,11 @@ pub async fn get_documents_json(
 pub async fn get_documents(
     tmpl: web::Data<tera::Tera>,
     pool: web::Data<DbPool>,
+    q: web::Query<documents::Query>,
 ) -> Result<HttpResponse, Error> {
     let conn = pool.get().expect("couldn't get db connection from pool");
 
-    let results = documents::get_all_documents(&conn);
+    let results = documents::get_documents(&conn, &q);
 
     let mut ctx = tera::Context::new();
     ctx.insert("documents", &results);
