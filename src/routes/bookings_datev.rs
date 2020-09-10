@@ -6,10 +6,12 @@ type DbPool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
 use std::path::Path;
 use std::fs;
 use std::io::prelude::*;
+use std::process::Command;
 use random_integer;
 
 use crate::mntconfig::Config;
 use crate::bookings;
+use crate::documents;
 use crate::models::*;
 use crate::schema::booking_docs::dsl::*;
 use crate::schema::document_images::dsl::{document_images, doc_id as docimg_doc_id};
@@ -234,107 +236,97 @@ pub async fn get_bookings_datev_csv(
         let mut amt = booking.amount_cents/100;
         let mut cents = booking.amount_cents%100;
 
-        /*let skip = if let Some(url) = booking.receipt_url {
-            url.is_empty()
-        } else {
-            true
-        };*/
-
-        let skip = true;
-
-        let docs:Vec<BookingDoc> = booking_docs.limit(1).filter(booking_id.eq(&booking.id))
+        let docs:Vec<BookingDoc> = booking_docs.filter(booking_id.eq(&booking.id))
             .load::<BookingDoc>(&conn).unwrap();
 
-        if !skip {
-            if let Some(booking_doc) = docs.first() {
-                // find account that is not the asset side
-                let acc_str = if booking.credit_account.starts_with("assets:") {
-                    booking.debit_account.clone()
-                } else {
-                    booking.credit_account.clone()
-                };
+        if docs.len()>0 {
+            // find account that is not the asset side
+            let acc_str = if booking.credit_account.starts_with("assets:") {
+                booking.debit_account.clone()
+            } else {
+                booking.credit_account.clone()
+            };
 
-                if booking.debit_account.starts_with("sales:") {
-                    soll_haben = "H".to_string();
+            if booking.debit_account.starts_with("sales:") {
+                soll_haben = "H".to_string();
+            }
+
+            // FIXME this should actually never happen. data error?
+            if amt<0 || cents<0 {
+                amt = -amt;
+                cents = -cents;
+                soll_haben = "H".to_string();
+                // TODO: generalumkehr?
+            }
+
+            let mut account1 = "9999".to_string();
+            let mut account2 = "99999".to_string();
+
+            for (match_str, target_acc) in config.datev_account1_map.iter() {
+                if acc_str.contains(match_str) {
+                    account1 = target_acc.clone();
                 }
+            }
 
-                // FIXME this should actually never happen. data error?
-                if amt<0 || cents<0 {
-                    amt = -amt;
-                    cents = -cents;
-                    soll_haben = "H".to_string();
-                    // TODO: generalumkehr?
+            // TODO include documentimage's tags in this search
+            for (match_str, target_acc) in config.datev_account2_map.iter() {
+                if acc_str.contains(match_str) {
+                    account2 = target_acc.clone();
                 }
+            }
 
-                let mut account1 = "9999".to_string();
-                let mut account2 = "99999".to_string();
+            let mon = &booking.booking_date[5..7];
+            let day = &booking.booking_date[8..10];
 
-                for (match_str, target_acc) in config.datev_account1_map.iter() {
-                    if acc_str.contains(match_str) {
-                        account1 = target_acc.clone();
-                    }
-                }
+            let document = documents::get_document_by_id(&conn, &docs.first().unwrap().doc_id);
+            let booking_doc_id = match (document.serial_id, document.foreign_serial_id) {
+                (Some(sid),_) if sid.len()>0 => sid,
+                (_,Some(fsid)) if fsid.len()>0 => fsid,
+                _ => "missing-serial-id".to_string()
+            };
+            let belegfeld = &booking_doc_id.replace("/","-");
 
-                // TODO include documentimage's tags in this search
-                for (match_str, target_acc) in config.datev_account2_map.iter() {
-                    if acc_str.contains(match_str) {
-                        account2 = target_acc.clone();
-                    }
-                }
+            let d = DatevBooking {
+                umsatz: format!("{},{:02}",amt,cents),
+                wkz: booking.currency,
 
-                let mon = &booking.booking_date[5..7];
-                let day = &booking.booking_date[8..10];
+                konto: account1,
+                gegenkonto: account2,
+                soll_haben: soll_haben,
 
-                // TODO this is a workaround to deal with the legacy
-                // data where multiple doc image paths were just comma seperated
-                let parts:Vec<&str> = booking_doc.doc_id.split(',').collect();
-                let booking_doc_id = parts.first().unwrap().to_string();
-                
-                let belegfeld = booking_doc_id.replace("/","-");
+                belegfeld_1: belegfeld.clone(),
+                belegdatum: format!("{:02}{:02}",day,mon),
+                buchungstext: acc_str.clone(),
 
-                let d = DatevBooking {
-                    umsatz: format!("{},{:02}",amt,cents),
-                    wkz: booking.currency,
+                ust_schluessel: "0".to_string(),
+                erloeskonto: "0".to_string(),
+                herkunft_kz: "RE".to_string(),
+                skontosperre: "0".to_string(),
+                festschreibung: "0".to_string(),
+                generalumkehr: "0".to_string(),
+                ..Default::default()
+            };
 
-                    konto: account1,
-                    gegenkonto: account2,
-                    soll_haben: soll_haben,
+            // TODO only output bookings where a document image was successfully copied?
+            wtr.serialize(d).unwrap();
 
-                    belegfeld_1: belegfeld.clone(),
-                    belegdatum: format!("{:02}{:02}",day,mon),
-                    buchungstext: acc_str.clone(),
+            let pdf_dest = export_folder.join("Belege").join(format!("{}.pdf",belegfeld));
+            let mut pdfunite = Command::new("pdfunite");
 
-                    ust_schluessel: "0".to_string(),
-                    erloeskonto: "0".to_string(),
-                    herkunft_kz: "RE".to_string(),
-                    skontosperre: "0".to_string(),
-                    festschreibung: "0".to_string(),
-                    generalumkehr: "0".to_string(),
-                    ..Default::default()
-                };
-
-                // TODO only output bookings where a document image was successfully copied?
-                wtr.serialize(d).unwrap();
-
-                // TODO create a unique folder per export
-                // copy the associated document image(s)
-                let docimages:Vec<DocumentImage> = document_images.limit(1).filter(docimg_doc_id.eq(&booking_doc_id))
+            // copy the associated document image(s)
+            for booking_doc in &docs {
+                let docimages:Vec<DocumentImage> = document_images.filter(docimg_doc_id.eq(&booking_doc.doc_id))
                     .load::<DocumentImage>(&conn).unwrap();
-
-                println!("Doc {:?} docimages: {:?}", &booking_doc_id, &docimages);
 
                 for di in docimages {
                     let pdf_source = Path::new(&config.docstore_path.clone()).join(&di.pdf_path.clone());
-                    let pdf_dest = export_folder.join("Belege").join(format!("{}.pdf",belegfeld));
-
-                    match fs::copy(&pdf_source, &pdf_dest) {
-                        Err(e) => {
-                            println!("Error copying document {:?} -> {:?}: {:?}", pdf_source, pdf_dest, e);
-                        },
-                        _ => ()
-                    }
+                    pdfunite.arg(&pdf_source);
+                    println!("|   {:?}", &pdf_source);
                 }
             }
+            pdfunite.arg(&pdf_dest);
+            let pdfu_result = pdfunite.output();
+            println!("'-> {:?} -> {:?}", &pdf_dest, pdfu_result);
         }
     }
     let data = String::from_utf8(wtr_header.into_inner().unwrap()).unwrap() + &(String::from_utf8(wtr.into_inner().unwrap()).unwrap());
