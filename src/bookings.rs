@@ -87,6 +87,8 @@ pub fn get_all_bookings(conn: &SqliteConnection, q: &Query) -> Vec<Booking> {
         _ => s
     };
 
+    let s = s.order(booking_date.asc());
+
     s.load::<Booking>(conn).unwrap()
 }
 
