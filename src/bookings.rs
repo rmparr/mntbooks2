@@ -67,12 +67,14 @@ pub fn get_all_bookings(conn: &SqliteConnection, q: &Query) -> Vec<Booking> {
     };
     
     let s = match &q.credit_account {
-        Some(acc) => s.filter(credit_account.like(format!("%{}%", acc))),
+        Some(acc) if !acc.starts_with("!") => s.filter(credit_account.like(format!("%{}%", acc))),
+        Some(acc) if acc.starts_with("!") => s.filter(credit_account.not_like(format!("%{}%", acc[1..].to_string()))),
         _ => s
     };
     
     let s = match &q.debit_account {
-        Some(acc) => s.filter(debit_account.like(format!("%{}%", acc))),
+        Some(acc) if !acc.starts_with("!") => s.filter(debit_account.like(format!("%{}%", acc))),
+        Some(acc) if acc.starts_with("!") => s.filter(debit_account.not_like(format!("%{}%", acc[1..].to_string()))),
         _ => s
     };
     
