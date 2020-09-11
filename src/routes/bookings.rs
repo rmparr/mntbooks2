@@ -15,7 +15,7 @@ use std::collections::HashMap;
 #[derive(serde::Serialize)]
 struct BookingPlusDocs {
     booking: Booking,
-    docs: Vec<String>
+    docs: Vec<Document>
 }
 
 #[get("/bookings")]
@@ -36,13 +36,18 @@ pub async fn get_bookings(
         *account_sums.entry(booking.debit_account.clone()).or_insert(0) -= booking.amount_cents;
         
         let booking_docs = bookingdocs::get_bookingdocs(&conn, &booking);
-        let mut doc_ids: Vec<String> = Vec::new();
+        let mut docs: Vec<Document> = Vec::new();
         for booking_doc in booking_docs {
-            doc_ids.push(booking_doc.doc_id);
+            match documents::get_document_by_id(&conn, &booking_doc.doc_id) {
+                Ok(doc) => docs.push(doc),
+                Err(e) => {
+                    println!("get_bookings database inconsistency: doc with id {} linked to booking {} not found!", &booking_doc.doc_id, &booking.id);
+                }
+            };
         }
         let booking_plus_docs = BookingPlusDocs {
             booking: booking,
-            docs: doc_ids,
+            docs: docs,
         };
         bookings_plus_docs.push(booking_plus_docs);
     }
@@ -77,7 +82,7 @@ pub async fn get_booking(
     let mut docs:Vec<Document> = vec!();
     
     let doc_ids:Vec<String> = bookingdocs::get_bookingdocs(&conn, &booking).iter().map(|bd| {
-        docs.push(documents::get_document_by_id(&conn, &bd.doc_id));
+        docs.push(documents::get_document_by_id(&conn, &bd.doc_id).unwrap());
         queried_docs.retain(|qd| {
             qd.id != bd.doc_id
         });

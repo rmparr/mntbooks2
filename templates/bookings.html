@@ -48,11 +48,14 @@
         <td>{{ b.booking.credit_account }}</td>
         <td class="details">{{ b.booking.details }}</td>
 	      <td>
-	        <ul>
+	        <table>
             {% for d in b.docs %}
-	          <li><a href="/documentimages?doc_id={{ d }}">{{ d }}</a>
+	          <tr>
+              <td><a href="/documentimages?doc_id={{ d.id }}">{{ d.id }}</td>
+              <td>{{ d.amount_cents | money }} {{ d.currency }}</td>
+            </tr>
             {% endfor %}
-	        </ul>
+	        </table>
         </td>
         <td>
           <a href="/bookings/{{ b.booking.id }}?bookings_query={{ bookings_query }}">Edit</a>

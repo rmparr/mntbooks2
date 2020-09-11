@@ -127,6 +127,6 @@ pub fn get_documents(conn: &SqliteConnection, q: &Query) -> Vec<Document> {
 
 // TODO update document_
 
-pub fn get_document_by_id(conn: &SqliteConnection, uuid: &String) -> Document {
-    documents.find(uuid).first(conn).unwrap()
+pub fn get_document_by_id(conn: &SqliteConnection, uuid: &String) -> Result<Document,diesel::result::Error> {
+    documents.find(uuid).first(conn)
 }

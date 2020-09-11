@@ -66,7 +66,8 @@ pub async fn get_document(
 ) -> Result<HttpResponse, Error> {
     let conn = pool.get().expect("couldn't get db connection from pool");
 
-    let result = documents::get_document_by_id(&conn, &path.0);
+    // TODO: 404 if not found
+    let result = documents::get_document_by_id(&conn, &path.0).unwrap();
 
     let mut ctx = tera::Context::new();
     ctx.insert("document", &result);
@@ -205,7 +206,9 @@ pub async fn copy_document(
     path: web::Path<(String,)>
 ) -> Result<HttpResponse, Error> {
     let conn = pool.get().expect("couldn't get db connection from pool");
-    let result = documents::get_document_by_id(&conn, &path.0);
+
+    // TODO: 404 if not found
+    let result = documents::get_document_by_id(&conn, &path.0).unwrap();
     let mut ctx = tera::Context::new();
 
     let doc = Document {

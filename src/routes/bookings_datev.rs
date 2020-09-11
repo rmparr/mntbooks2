@@ -246,70 +246,93 @@ pub async fn get_bookings_datev_csv(
 
     for booking in bookings {
         let mut soll_haben = "S".to_string();
-        let mut amt = booking.amount_cents/100;
-        let mut cents = booking.amount_cents%100;
+        let mut booking_amt = booking.amount_cents/100;
+        let mut booking_cents = booking.amount_cents%100;
 
         let docs:Vec<BookingDoc> = booking_docs.filter(booking_id.eq(&booking.id))
             .load::<BookingDoc>(&conn).unwrap();
 
-        if docs.len()>0 {
-            // find account that is not the asset side
-            let acc_str = if booking.credit_account.starts_with("assets:") {
-                booking.debit_account.clone()
-            } else {
-                booking.credit_account.clone()
-            };
+        let asset;
+        
+        // find account that is not the asset side
+        let acc_str = if booking.credit_account.starts_with("assets:") {
+            asset = booking.credit_account.replace("assets:","").clone();
+            booking.debit_account.clone()
+        } else {
+            asset = booking.debit_account.replace("assets:","").clone();
+            booking.credit_account.clone()
+        };
 
-            if booking.debit_account.starts_with("sales:") {
-                soll_haben = "H".to_string();
+        if booking.debit_account.starts_with("sales:") {
+            soll_haben = "H".to_string();
+        }
+
+        // FIXME this should actually never happen. data error?
+        /*if amt<0 || cents<0 {
+            amt = -amt;
+            cents = -cents;
+            soll_haben = "H".to_string();
+            // TODO: generalumkehr?
+        }*/
+        
+        let mut account1 = "9999".to_string();
+        let mut account2 = "99999".to_string();
+
+        for (match_str, target_acc) in config.datev_account1_map.iter() {
+            if acc_str.contains(match_str) {
+                account1 = target_acc.clone();
+            }
+        }
+
+        for (match_str, target_acc) in config.datev_account2_map.iter() {
+            if acc_str.contains(match_str) {
+                account2 = target_acc.clone();
+            }
+        }
+        
+        let mon = &booking.booking_date[5..7];
+        let day = &booking.booking_date[8..10];
+        
+        for bookingdoc in docs {
+            let document = documents::get_document_by_id(&conn, &bookingdoc.doc_id).unwrap();
+
+            let mut amt = document.amount_cents.unwrap().abs()/100;
+            let mut cents = document.amount_cents.unwrap().abs()%100;
+
+            println!("doc: {:?}", &document);
+            
+            // FIXME these need to be config rules
+            match (&document.serial_id,&document.tax_code) {
+                (Some(_),Some(tax)) if tax == "EU16" || tax == "EU19" => {
+                    account1 = "8400".to_string();
+                    account2 = "1410".to_string();
+                },
+                (Some(_),Some(tax)) if tax == "NONEU0" => {
+                    account1 = "8120".to_string();
+                    account2 = "1410".to_string();
+                },
+                _ => ()
             }
 
-            // FIXME this should actually never happen. data error?
-            if amt<0 || cents<0 {
-                amt = -amt;
-                cents = -cents;
-                soll_haben = "H".to_string();
-                // TODO: generalumkehr?
-            }
-
-            let mut account1 = "9999".to_string();
-            let mut account2 = "99999".to_string();
-
-            for (match_str, target_acc) in config.datev_account1_map.iter() {
-                if acc_str.contains(match_str) {
-                    account1 = target_acc.clone();
-                }
-            }
-
-            // TODO include documentimage's tags in this search
-            for (match_str, target_acc) in config.datev_account2_map.iter() {
-                if acc_str.contains(match_str) {
-                    account2 = target_acc.clone();
-                }
-            }
-
-            let mon = &booking.booking_date[5..7];
-            let day = &booking.booking_date[8..10];
-
-            let document = documents::get_document_by_id(&conn, &docs.first().unwrap().doc_id);
             let booking_doc_id = match (document.serial_id, document.foreign_serial_id) {
                 (Some(sid),_) if sid.len()>0 => sid,
                 (_,Some(fsid)) if fsid.len()>0 => fsid,
                 _ => "missing-serial-id".to_string()
             };
             let belegfeld = &booking_doc_id.replace("/","-");
+            let buchungstext = format!("{},{:02} {} {}", booking_amt, booking_cents, asset, &acc_str);
 
             let d = DatevBooking {
                 umsatz: format!("{},{:02}",amt,cents),
-                wkz: booking.currency,
+                wkz: booking.currency.clone(),
 
-                konto: account1,
-                gegenkonto: account2,
-                soll_haben: soll_haben,
+                konto: account1.clone(),
+                gegenkonto: account2.clone(),
+                soll_haben: soll_haben.clone(),
 
                 belegfeld_1: belegfeld.clone(),
                 belegdatum: format!("{:02}{:02}",day,mon),
-                buchungstext: acc_str.clone(),
+                buchungstext: buchungstext,
 
                 ust_schluessel: "0".to_string(),
                 erloeskonto: "0".to_string(),
@@ -327,15 +350,13 @@ pub async fn get_bookings_datev_csv(
             let mut pdfunite = Command::new("pdfunite");
 
             // copy the associated document image(s)
-            for booking_doc in &docs {
-                let docimages:Vec<DocumentImage> = document_images.filter(docimg_doc_id.eq(&booking_doc.doc_id))
-                    .load::<DocumentImage>(&conn).unwrap();
+            let docimages:Vec<DocumentImage> = document_images.filter(docimg_doc_id.eq(&bookingdoc.doc_id))
+                .load::<DocumentImage>(&conn).unwrap();
 
-                for di in docimages {
-                    let pdf_source = Path::new(&config.docstore_path.clone()).join(&di.pdf_path.clone());
-                    pdfunite.arg(&pdf_source);
-                    println!("|   {:?}", &pdf_source);
-                }
+            for di in docimages {
+                let pdf_source = Path::new(&config.docstore_path.clone()).join(&di.pdf_path.clone());
+                pdfunite.arg(&pdf_source);
+                println!("|   {:?}", &pdf_source);
             }
             pdfunite.arg(&pdf_dest);
             let pdfu_result = pdfunite.output();
