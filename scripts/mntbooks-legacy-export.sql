@@ -26,4 +26,9 @@ select id,"invoice",invoice_date,amount_cents,currency,tax_code,id,NULL,order_id
 -- TODO: correct currency after the fact
 select path,"receipt",date,sum*100,"EUR",NULL,NULL,docid,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,created_at,updated_at,tags from documents where docid is NOT NULL and docid is NOT "" and state="defer";
 
+-- clean up and re-link invoices
+update booking_docs set doc_id = (select documents.id from documents where booking_docs.doc_id like "invoice-%-"||documents.id||".pdf") where doc_id like "invoice-%";
+update document_images set doc_id = (select documents.id from documents where document_images.doc_id like "invoice-%-"||documents.id||".pdf") where doc_id like "invoice-%";
+delete from documents where id like "invoice-%" and kind="receipt";
+
 .quit
