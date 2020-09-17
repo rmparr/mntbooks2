@@ -180,7 +180,7 @@
       </div>
       
       <div id="meta">
-        <b>Nummer: {{ document.kind }}-{{ document.serial_id }}</b><br>
+        <b>Nummer: {{ document.serial_id }}</b><br>
         Datum: {{ document.doc_date }}<br>
         {% if document.replaces_id %}<b>Ersetzt: {{ document.replaces_id }}</b>{% endif %}<br>
         {% if document.order_id %}Bestellnummer: {{ document.order_id }}{% endif %}<br>
@@ -227,12 +227,12 @@
         <tr>
           <td class="pos">{{ loop.index }}</td>
           <td class="amount">{{ p.quantity }}</td>
-          <td class="price">{{ p.price_cents/100.0 }}</td>
+          <td class="price">{{ p.price_cents | money }}</td>
           <td>
             <h5>{{ p.sku }} {{ p.title }}</h5>
             <p>{{ p.description }}</p>
           </td>
-          <td class="sum">{{ p.amount_cents/100.0 }}</td>
+          <td class="sum">{{ p.amount_cents | money }}</td>
         </tr>
         {% endfor %}
         

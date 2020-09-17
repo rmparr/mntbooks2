@@ -10,8 +10,8 @@ use crate::models::Document;
 use crate::mntconfig::Config;
 
 use chrono::prelude::*;
-
 use crate::util::utc_iso_date_string;
+use rust_decimal::prelude::*;
 
 #[derive(serde::Deserialize)]
 pub struct DocumentImageForm {
@@ -69,6 +69,59 @@ pub async fn get_document(
     // TODO: 404 if not found
     let result = documents::get_document_by_id(&conn, &path.0).unwrap();
 
+    // TODO: move calculations to method of Document
+    let tax_code = &result.tax_code.clone().unwrap();
+    let mut tax_rate:Decimal = match config.tax_rates.get(tax_code) {
+        Some(rate) => Decimal::from_str(rate).unwrap(),
+        None => {
+            println!("warning: unknown tax code {:?} in document {:?}", tax_code, &result.serial_id);
+            Decimal::new(0,2)
+        }
+    };
+
+    let payment_method = &result.payment_method.clone().unwrap();
+    let empty_payment_terms = "".to_string();
+    let payment_terms = match config.invoice_payment_terms.get(payment_method) {
+        Some(terms) => terms,
+        None => {
+            println!("warning: unknown payment method {:?} in document {:?}", payment_method, &result.serial_id);
+           &empty_payment_terms
+        }
+    };
+
+    // FIXME: keeping this around in case we need a different calculation
+    // for vat included vs not included later
+    let vat_included = match &result.vat_included {
+        Some(s) if s == "true" => true,
+        Some(s) if s == "false" => false,
+        _ => {
+            println!("warning: can't parse vat_included {:?} in document {:?}", &result.vat_included, &result.serial_id);
+            false
+        }
+    };
+
+    println!("rate: {:?} vat_included: {:?} -> {:?}", tax_rate, &result.vat_included, vat_included);
+    
+    let mut outro = "".to_string();
+
+    let mut net_total = Decimal::new(result.amount_cents.unwrap() as i64, 2);
+    let mut total = net_total.clone();
+    let mut tax_total = Decimal::new(0,0);
+
+    // FIXME: note: invoice totals are currently always stored as if VAT was included
+    net_total = total / (Decimal::new(1,0) + tax_rate);
+    tax_total = total - net_total;
+
+    if tax_rate == Decimal::new(0,0) {
+        outro += &config.invoice_outro_no_tax;
+    }
+    
+    net_total.rescale(2);
+    tax_total.rescale(2);
+    total.rescale(2);
+    tax_rate *= Decimal::new(100,0);
+    tax_rate.rescale(1);
+
     let mut ctx = tera::Context::new();
     ctx.insert("document", &result);
     ctx.insert("line_items", &documents::line_items(&result));
@@ -76,12 +129,12 @@ pub async fn get_document(
     ctx.insert("legal_lines", &config.invoice_legal_lines);
     ctx.insert("bank_lines", &config.invoice_bank_lines);
     ctx.insert("signature_lines", &config.invoice_signature_lines);
-    ctx.insert("net_total", &0);
-    ctx.insert("tax_rate", &16); // FIXME
-    ctx.insert("tax_total", &0);
-    ctx.insert("total", &0);
-    ctx.insert("outro", &"".to_string());
-    ctx.insert("terms", &"".to_string());
+    ctx.insert("net_total", &net_total);
+    ctx.insert("tax_rate", &tax_rate);
+    ctx.insert("tax_total", &tax_total);
+    ctx.insert("total", &total);
+    ctx.insert("outro", &outro);
+    ctx.insert("terms", &payment_terms);
 
     let s = tmpl.render("document.html", &ctx)
         .map_err(|e| {
