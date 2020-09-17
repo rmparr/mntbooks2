@@ -6,7 +6,7 @@ use chrono::prelude::*;
 use mntbooks::models::DocumentImage;
 use mntbooks::schema::document_images::dsl::document_images;
 use mntbooks::mntconfig::Config;
-use mntbooks::util::{db_pool_from_env,utc_iso_date_string};
+use mntbooks::util::{db_pool_from_url,utc_iso_date_string};
 
 fn create_document_image(conn: &SqliteConnection, img_path: &str) -> DocumentImage {
     // TODO: detect mime, extract text, build PDF and thumbnail etc.
@@ -32,7 +32,7 @@ pub fn get_all_document_images(conn: &SqliteConnection) -> Vec<DocumentImage> {
 
 fn main() {
     let config = Config::new("mntconfig.toml");
-    let pool = db_pool_from_env("DATABASE_URL");
+    let pool = db_pool_from_url(&config.database_url.clone());
     let conn = pool.get().expect("couldn't get db connection from pool");
 
     let doc_imgs = get_all_document_images(&conn);

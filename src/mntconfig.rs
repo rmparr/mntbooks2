@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 #[derive(Clone, serde::Deserialize)]
 pub struct Config {
+    pub database_url: String,
     pub http_bind: String,
     pub company_address: Vec<String>,
     pub invoice_legal_lines: Vec<String>,

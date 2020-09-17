@@ -16,8 +16,7 @@ pub fn fmt_money(cents: &Value, _ctx: &HashMap<String, Value>) -> Result<Value, 
     }
 }
 
-pub fn db_pool_from_env(db_var: &str) -> r2d2::Pool<ConnectionManager<SqliteConnection>> {
-    let connspec = std::env::var(db_var).expect(db_var);
+pub fn db_pool_from_url(connspec: &str) -> r2d2::Pool<ConnectionManager<SqliteConnection>> {
     let manager = ConnectionManager::<SqliteConnection>::new(connspec);
     let pool = r2d2::Pool::builder()
         .build(manager)

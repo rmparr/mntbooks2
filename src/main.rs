@@ -50,11 +50,11 @@ async fn main() -> std::io::Result<()> {
     dotenv::dotenv().ok();
 
     // set up database connection pool
-    let pool = util::db_pool_from_env("DATABASE_URL");
 
     let mntconfig = mntconfig::Config::new("mntconfig.toml");
     
     let bind = mntconfig.http_bind.clone();
+    let pool = util::db_pool_from_url(&mntconfig.database_url.clone());
 
     println!("Starting server at: {}", &bind);
 
