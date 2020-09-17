@@ -52,9 +52,9 @@ async fn main() -> std::io::Result<()> {
     // set up database connection pool
     let pool = util::db_pool_from_env("DATABASE_URL");
 
-    let bind = "0.0.0.0:8080";
-
     let mntconfig = mntconfig::Config::new("mntconfig.toml");
+    
+    let bind = mntconfig.http_bind.clone();
 
     println!("Starting server at: {}", &bind);
 
