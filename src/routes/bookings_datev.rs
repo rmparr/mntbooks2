@@ -18,6 +18,8 @@ use crate::schema::document_images::dsl::{document_images, doc_id as docimg_doc_
 
 use csv::{WriterBuilder,QuoteStyle};
 use chrono::prelude::*;
+use encoding_rs::*;
+use regex::Regex;
 
 use super::super::util::utc_iso_date_string;
 
@@ -198,8 +200,9 @@ pub async fn get_bookings_datev_csv(
     let bookings:Vec<Booking> = bookings::get_all_bookings(&conn, &q);
 
     let export_folder = Path::new(&config.datev_export_path.clone())
-        .join(format!("{}-{:04}", utc_iso_date_string(&Utc::now()), random_integer::random_u16(0,10000)));
+        .join(format!("{}", utc_iso_date_string(&Utc::now())));
 
+    fs::remove_dir_all(&export_folder);
     fs::create_dir(&export_folder).unwrap();
     fs::create_dir(&export_folder.join("Belege")).unwrap();
 
@@ -246,8 +249,8 @@ pub async fn get_bookings_datev_csv(
 
     for booking in bookings {
         let mut soll_haben = "S".to_string();
-        let mut booking_amt = booking.amount_cents/100;
-        let mut booking_cents = booking.amount_cents%100;
+        let booking_amt = booking.amount_cents/100;
+        let booking_cents = booking.amount_cents%100;
 
         let docs:Vec<BookingDoc> = booking_docs.filter(booking_id.eq(&booking.id))
             .load::<BookingDoc>(&conn).unwrap();
@@ -263,29 +266,22 @@ pub async fn get_bookings_datev_csv(
             booking.credit_account.clone()
         };
 
-        if booking.debit_account.starts_with("sales:") {
+        let is_sales = booking.debit_account.starts_with("sales:");
+        if is_sales {
             soll_haben = "H".to_string();
         }
-
-        // FIXME this should actually never happen. data error?
-        /*if amt<0 || cents<0 {
-            amt = -amt;
-            cents = -cents;
-            soll_haben = "H".to_string();
-            // TODO: generalumkehr?
-        }*/
         
         let mut account1 = "9999".to_string();
         let mut account2 = "99999".to_string();
 
         for (match_str, target_acc) in config.datev_account1_map.iter() {
-            if acc_str.contains(match_str) {
+            if Regex::new(match_str).unwrap().is_match(&acc_str) {
                 account1 = target_acc.clone();
             }
         }
 
         for (match_str, target_acc) in config.datev_account2_map.iter() {
-            if acc_str.contains(match_str) {
+            if Regex::new(match_str).unwrap().is_match(&acc_str) {
                 account2 = target_acc.clone();
             }
         }
@@ -296,8 +292,8 @@ pub async fn get_bookings_datev_csv(
         for bookingdoc in docs {
             let document = documents::get_document_by_id(&conn, &bookingdoc.doc_id).unwrap();
 
-            let mut amt = document.amount_cents.unwrap().abs()/100;
-            let mut cents = document.amount_cents.unwrap().abs()%100;
+            let amt = document.amount_cents.unwrap().abs()/100;
+            let cents = document.amount_cents.unwrap().abs()%100;
 
             println!("doc: {:?}", &document);
             
@@ -320,7 +316,12 @@ pub async fn get_bookings_datev_csv(
                 _ => "missing-serial-id".to_string()
             };
             let belegfeld = &booking_doc_id.replace("/","-");
-            let buchungstext = format!("{},{:02} {} {}", booking_amt, booking_cents, asset, &acc_str);
+
+            let buchungstext = if is_sales {
+                format!("{} {} {} {},{:02} {}", document.customer_country.unwrap(), document.customer_name.unwrap(), document.customer_company.unwrap(), booking_amt, booking_cents, asset)
+            } else {
+                format!("{},{:02} {} {}", booking_amt, booking_cents, asset, &acc_str)
+            };
 
             let d = DatevBooking {
                 umsatz: format!("{},{:02}",amt,cents),
@@ -370,7 +371,8 @@ pub async fn get_bookings_datev_csv(
     match fs::File::create(&csv_dest) {
         Err(why) => panic!("couldn't create {:?}: {}", csv_dest, why),
         Ok(mut file) => {
-            file.write_all(data.as_bytes()).unwrap();
+            let (encoded_data,_,_) = WINDOWS_1252.encode(&data);
+            file.write_all(&encoded_data).unwrap();
         }
     };
 
