@@ -184,8 +184,10 @@
         Datum: {{ document.doc_date }}<br>
         {% if document.replaces_id %}<b>Ersetzt: {{ document.replaces_id }}</b>{% endif %}<br>
         {% if document.order_id %}Bestellnummer: {{ document.order_id }}{% endif %}<br>
+        {% if document.kind == "invoice" %}
         <br>
         Leistungsdatum entspricht Rechnungsdatum
+        {% endif %}
       </div>
       
       <div id="legal">
