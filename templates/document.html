@@ -231,7 +231,7 @@
           <td class="amount">{{ p.quantity }}</td>
           <td class="price">{{ p.price_cents | money }}</td>
           <td>
-            <h5>{{ p.sku }} {{ p.title }}</h5>
+            <h5>{{ p.title }}{% if p.sku %} ({{ p.sku }}){% endif %}</h5>
             <p>{{ p.description }}</p>
           </td>
           <td class="sum">{{ p.amount_cents | money }}</td>
