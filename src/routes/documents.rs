@@ -237,7 +237,7 @@ pub async fn new_document(
         sku: Some("".to_string()),
         title: "".to_string(),
         description: "".to_string(),
-        quantity: 1,
+        quantity: 1.0,
         price_cents: 0,
         amount_cents: 0
     }];

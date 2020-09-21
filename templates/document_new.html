@@ -144,9 +144,9 @@
           sku: skuEl.value,
           title: titleEl.value,
           quantity: parseFloat(amountEl.value),
-          price_cents: parseFloat(priceEl.value)*100,
+          price_cents: Math.round(parseFloat(priceEl.value)*100),
           description: descEl.value,
-          amount_cents: parseFloat(sum)*100
+          amount_cents: Math.round(parseFloat(sum)*100)
         })
       } else {
         break
@@ -178,7 +178,7 @@
       serial_id: document.getElementById("serial_id").value,
       kind: document.getElementById("kind").value,
       doc_date: document.getElementById("idate").value,
-      amount_cents: grandTotal*100, // FIXME
+      amount_cents: Math.round(grandTotal*100), // FIXME
       currency: "EUR",
       account: document.getElementById("sales_account").value,
       payment_method: paymentMethod,

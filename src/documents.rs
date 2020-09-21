@@ -18,7 +18,7 @@ pub struct LineItem {
     pub sku: Option<String>,
     pub title: String,
     pub description: String,
-    pub quantity: i32,
+    pub quantity: f64,
     pub price_cents: i32,
     pub amount_cents: i32
 }
@@ -39,6 +39,8 @@ pub fn line_items(doc: &Document) -> Vec<LineItem> {
     if let Some(items_str) = &doc.line_items {
         if let Ok(i) = serde_json::from_str::<Vec<LineItem>>(items_str) {
             items.extend(i);
+        } else {
+            println!("warning: could not parse line items {:?}", &items_str);
         }
     }
     items
