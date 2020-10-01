@@ -1,4 +1,8 @@
-use actix_web::{error, get, web, Error, HttpResponse};
+use actix_web::{error, get, Error, HttpResponse};
+use paperclip::actix::{
+    api_v2_operation,
+    web::{self, Json},
+};
 use diesel::r2d2::{self, ConnectionManager};
 use diesel::sqlite::SqliteConnection;
 type DbPool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
@@ -6,14 +10,17 @@ use crate::documentimages;
 use crate::models::DocumentImage;
 use crate::bookingdocs;
 
-#[get("/documentimages.json")]
+#[api_v2_operation]
+/// Get DocumentImages
+///
+/// Returns all DocumentImages that match the specified query.
 pub async fn get_documentimages_json(
     pool: web::Data<DbPool>,
     q: web::Query<documentimages::Query>
-) -> Result<HttpResponse, Error> {
+) -> Result<Json<Vec<DocumentImage>>, Error> {
     let conn = pool.get().expect("couldn't get db connection from pool");
     let results = documentimages::get_document_images(&conn, &q);
-    Ok(HttpResponse::Ok().json(results))
+    Ok(Json(results))
 }
 
 #[get("/documentimages")]

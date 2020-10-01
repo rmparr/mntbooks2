@@ -7,7 +7,6 @@ use std::path::Path;
 use std::fs;
 use std::io::prelude::*;
 use std::process::Command;
-use random_integer;
 
 use crate::mntconfig::Config;
 use crate::bookings;

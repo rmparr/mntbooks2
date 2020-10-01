@@ -5,7 +5,7 @@ extern crate toml;
 #[macro_use]
 extern crate diesel;
 
-use actix_web::{error, middleware, web, App, FromRequest, HttpRequest, HttpResponse, HttpServer};
+use actix_web::{error, middleware, App, FromRequest, HttpRequest, HttpResponse, HttpServer};
 use actix_files::Files;
 
 use tera::Tera;
@@ -26,6 +26,10 @@ use crate::routes::documents::*;
 use crate::routes::bookingdocs::*;
 use crate::routes::documentimages::*;
 use crate::models::Document;
+
+use paperclip::actix::{
+    OpenApiExt, web::{self, Json},
+};
 
 fn json_error_handler(err: error::JsonPayloadError, _req: &HttpRequest) -> error::Error {
     use actix_web::error::JsonPayloadError;
@@ -59,7 +63,6 @@ async fn main() -> std::io::Result<()> {
     println!("Starting server at: {}", &bind);
 
     // Start HTTP server
-    // FIXME: why move?
     HttpServer::new(move || {
         let mut tera =
             Tera::new(concat!(env!("CARGO_MANIFEST_DIR"), "/templates/**/*")).unwrap();
@@ -73,26 +76,30 @@ async fn main() -> std::io::Result<()> {
             .data(pool.clone())
             .data(mntconfig.clone())
             .wrap(middleware::Logger::default())
+            .wrap_api()
+            .service(web::resource("/documents.json").route(web::get().to(get_documents_json)))
+            .service(web::resource("/documents.json").route(web::post().to(add_document_json)))
+            .service(web::resource("/documentimages.json").route(web::get().to(get_documentimages_json)))
+            .service(web::resource("/bookingdocs.json").route(web::post().to(add_bookingdoc_json)))
+            .service(web::resource("/bookings.json").route(web::post().to(post_bookings_json)))
+            .with_json_spec_at("/api-spec.json")
+            .build()
             .service(get_bookings)
             .service(get_booking)
             .service(post_bookings)
-            .service(post_bookings_json)
             .service(get_bookings_datev_csv)
             .service(get_documents)
-            .service(get_documents_json)
             .service(get_documentimages)
-            .service(get_documentimages_json)
             .service(new_document)
             .service(copy_document)
             .service(get_document)
             .service(add_document)
-            .service(add_document_json)
-            .service(add_bookingdoc_json)
+            .service(Files::new("/api-docs", "static/docs/"))
             .service(Files::new("/css", "static/css/"))
             .service(Files::new("/js", "static/js/"))
             .service(Files::new("/img", "static/img/"))
             .service(Files::new("/docstore", &mntconfig.docstore_path).disable_content_disposition())
-            .app_data(web::Json::<Document>::configure(|cfg| {
+            .app_data(Json::<Document>::configure(|cfg| {
                 cfg.error_handler(json_error_handler)
             }))
     })

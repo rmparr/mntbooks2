@@ -1,5 +1,6 @@
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
+use paperclip::actix::Apiv2Schema;
 
 use crate::models::*;
 use crate::schema::bookings::dsl::*;
@@ -20,7 +21,7 @@ pub struct Query {
     done: Option<String>
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Apiv2Schema)]
 pub struct NewBooking {
     pub booking_date: String,
     pub amount_cents: i32,

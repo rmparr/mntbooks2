@@ -1,4 +1,8 @@
-use actix_web::{http, error, get, post, web, Error, HttpResponse};
+use actix_web::{http, error, get, post, Error, HttpResponse};
+use paperclip::actix::{
+    api_v2_operation,
+    web::{self, Json},
+};
 use diesel::r2d2::{self, ConnectionManager};
 use diesel::sqlite::SqliteConnection;
 type DbPool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
@@ -26,15 +30,18 @@ pub struct DocumentImageForm {
     pub done: bool
 }
 
-#[get("/documents.json")]
+#[api_v2_operation]
+/// Get Documents
+///
+/// Returns all Document objects matching the given query.
 pub async fn get_documents_json(
     pool: web::Data<DbPool>,
     q: web::Query<documents::Query>,
-) -> Result<HttpResponse, Error> {
+) -> Result<Json<Vec<Document>>, ()> {
     let conn = pool.get().expect("couldn't get db connection from pool");
 
     let results = documents::get_documents(&conn, &q);
-    Ok(HttpResponse::Ok().json(results))
+    Ok(Json(results))
 }
 
 #[get("/documents")]
@@ -100,8 +107,6 @@ pub async fn get_document(
         }
     };
 
-    println!("rate: {:?} vat_included: {:?} -> {:?}", tax_rate, &result.vat_included, vat_included);
-    
     let mut outro = "".to_string();
 
     let mut net_total = Decimal::new(result.amount_cents.unwrap() as i64, 2);
@@ -186,15 +191,18 @@ pub async fn add_document(
 
 }
 
-#[post("/documents.json")]
+#[api_v2_operation]
+/// Create a Document
+///
+/// Creates a new Document such as an Invoice, Quote, or Refund.
 pub async fn add_document_json(
     pool: web::Data<DbPool>,
-    params: web::Json<Document>
-) -> Result<HttpResponse, Error> {
+    params: Json<Document>
+) -> Result<Json<Document>,()> {
     let conn = pool.get().expect("couldn't get db connection from pool");
 
     let document = documents::create_document(&conn, &params);
-    Ok(HttpResponse::Ok().json(&document))
+    Ok(Json(document))
 }
 
 #[get("/documents/new")]

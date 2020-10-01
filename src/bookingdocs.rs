@@ -6,10 +6,11 @@ use crate::schema::booking_docs::dsl::*;
 use crate::schema::booking_docs::dsl::id as bookingdoc_id;
 use crate::schema::bookings::dsl::*;
 use crate::schema::documents::dsl::*;
+use paperclip::actix::Apiv2Schema;
 
 use diesel::dsl::*;
 
-#[derive(serde::Deserialize, Debug)]
+#[derive(serde::Deserialize, Debug, Apiv2Schema)]
 pub struct BookingDocInsert {
     pub booking_id: String,
     pub doc_id: String,

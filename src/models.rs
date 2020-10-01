@@ -5,15 +5,18 @@
 
 use crate::schema::*;
 
+use paperclip::actix::{
+    Apiv2Schema
+};
 
-#[derive(serde::Serialize, serde::Deserialize, Clone, Queryable, Insertable, Identifiable, Debug, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Apiv2Schema, Clone, Queryable, Insertable, Identifiable, Debug, Default)]
 pub struct BookingDoc {
     pub id: i32,
     pub booking_id: String,
     pub doc_id: String,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Clone, Queryable, Insertable, Identifiable, Debug, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Apiv2Schema, Clone, Queryable, Insertable, Identifiable, Debug, Default)]
 pub struct Booking {
     pub id: String,
     pub booking_date: String,
@@ -30,10 +33,12 @@ pub struct Booking {
     pub done: bool,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Clone, Queryable, Insertable, Identifiable, Debug, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Apiv2Schema, Clone, Queryable, Insertable, Identifiable, Debug, Default)]
 #[primary_key(path)]
+/// A PDF file associated with a Document.
 pub struct DocumentImage {
     pub path: String,
+    /// The path to the PDF file relative to the DocStore.
     pub pdf_path: String,
     pub mime_type: String,
     pub doc_id: Option<String>,
@@ -43,7 +48,7 @@ pub struct DocumentImage {
     pub updated_at: String,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Clone, Queryable, Insertable, Identifiable, Debug, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Apiv2Schema, Clone, Queryable, Insertable, Identifiable, Debug, Default)]
 pub struct Document {
     pub id: String,
     pub kind: String,
