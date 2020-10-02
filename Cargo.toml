@@ -29,3 +29,4 @@ rust_decimal = "1.8.1"
 encoding_rs = "0.8.24"
 regex = "1.3.9"
 paperclip = { git = "https://github.com/wafflespeanut/paperclip.git", features = ["actix"] }
+tempfile = "3.1.0"

@@ -6,11 +6,16 @@ use paperclip::actix::{
 use diesel::r2d2::{self, ConnectionManager};
 use diesel::sqlite::SqliteConnection;
 type DbPool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
+use std::path::Path;
+use std::io::Write;
+use std::fs::File;
+use std::process::Command;
 
 use crate::documents;
 use crate::documents::LineItem;
 use crate::documentimages::*;
 use crate::models::Document;
+use crate::models::DocumentImage;
 use crate::mntconfig::Config;
 
 use chrono::prelude::*;
@@ -64,52 +69,41 @@ pub async fn get_documents(
     Ok(HttpResponse::Ok().content_type("text/html").body(s))
 }
 
-#[get("/documents/{id}")]
-pub async fn get_document(
-    tmpl: web::Data<tera::Tera>,
-    pool: web::Data<DbPool>,
-    config: web::Data<Config>,
-    path: web::Path<(String,)>
-) -> Result<HttpResponse, Error> {
-    let conn = pool.get().expect("couldn't get db connection from pool");
-
-    // TODO: 404 if not found
-    let result = documents::get_document_by_id(&conn, &path.0).unwrap();
-
+pub fn document_to_html(config: &Config, tmpl: &tera::Tera, doc: &Document) -> String {
     // TODO: move calculations to method of Document
-    let tax_code = &result.tax_code.clone().unwrap();
+    let tax_code = &doc.tax_code.clone().unwrap();
     let mut tax_rate:Decimal = match config.tax_rates.get(tax_code) {
         Some(rate) => Decimal::from_str(rate).unwrap(),
         None => {
-            println!("warning: unknown tax code {:?} in document {:?}", tax_code, &result.serial_id);
+            println!("warning: unknown tax code {:?} in document {:?}", tax_code, doc.serial_id);
             Decimal::new(0,2)
         }
     };
 
-    let payment_method = &result.payment_method.clone().unwrap();
+    let payment_method = &doc.payment_method.clone().unwrap();
     let empty_payment_terms = "".to_string();
     let payment_terms = match config.invoice_payment_terms.get(payment_method) {
         Some(terms) => terms,
         None => {
-            println!("warning: unknown payment method {:?} in document {:?}", payment_method, &result.serial_id);
+            println!("warning: unknown payment method {:?} in document {:?}", payment_method, doc.serial_id);
            &empty_payment_terms
         }
     };
 
     // FIXME: keeping this around in case we need a different calculation
     // for vat included vs not included later
-    let vat_included = match &result.vat_included {
+    let vat_included = match &doc.vat_included {
         Some(s) if s == "true" => true,
         Some(s) if s == "false" => false,
         _ => {
-            println!("warning: can't parse vat_included {:?} in document {:?}", &result.vat_included, &result.serial_id);
+            println!("warning: can't parse vat_included {:?} in document {:?}", doc.vat_included, doc.serial_id);
             false
         }
     };
 
     let mut outro = "".to_string();
 
-    let mut net_total = Decimal::new(result.amount_cents.unwrap() as i64, 2);
+    let mut net_total = Decimal::new(doc.amount_cents.unwrap() as i64, 2);
     let mut total = net_total.clone();
     let mut tax_total = Decimal::new(0,0);
 
@@ -128,8 +122,8 @@ pub async fn get_document(
     tax_rate.rescale(1);
 
     let mut ctx = tera::Context::new();
-    ctx.insert("document", &result);
-    ctx.insert("line_items", &documents::line_items(&result));
+    ctx.insert("document", doc);
+    ctx.insert("line_items", &documents::line_items(doc));
     ctx.insert("sender_address", &config.company_address);
     ctx.insert("legal_lines", &config.invoice_legal_lines);
     ctx.insert("bank_lines", &config.invoice_bank_lines);
@@ -141,17 +135,33 @@ pub async fn get_document(
     ctx.insert("outro", &outro);
     ctx.insert("terms", &payment_terms);
 
-    let s = tmpl.render("document.html", &ctx)
+    let html = tmpl.render("document.html", &ctx)
         .map_err(|e| {
             println!("{:?}",e);
             error::ErrorInternalServerError("Template error")
         })
         .unwrap();
+    html
+}
 
-    Ok(HttpResponse::Ok().content_type("text/html").body(s))
+#[get("/documents/{id}")]
+pub async fn get_document(
+    tmpl: web::Data<tera::Tera>,
+    pool: web::Data<DbPool>,
+    config: web::Data<Config>,
+    path: web::Path<(String,)>
+) -> Result<HttpResponse, Error> {
+    let conn = pool.get().expect("couldn't get db connection from pool");
+
+    // TODO: 404 if not found
+    let result = documents::get_document_by_id(&conn, &path.0).unwrap();
+    let html = document_to_html(&config, &tmpl, &result);
+
+    Ok(HttpResponse::Ok().content_type("text/html").body(html))
 }
 
 #[post("/documents")]
+/// Create a Document for an existing DocumentImage via form POST
 pub async fn add_document(
     pool: web::Data<DbPool>,
     dif: web::Form<DocumentImageForm>,
@@ -191,18 +201,62 @@ pub async fn add_document(
 
 }
 
+pub fn create_pdf_document_image(config: &Config, conn: &SqliteConnection, tmpl: &tera::Tera, doc: &Document, pdf_path: &String) -> DocumentImage {
+    let pdf_docstore_path = Path::new(&config.docstore_path.clone())
+        .join(pdf_path);
+    
+    let html = document_to_html(config, tmpl, doc);
+
+    let temp_html_path = format!("{}.html",pdf_path);
+    let mut temp_file = File::create(&temp_html_path).unwrap();
+    temp_file.write_all(html.as_bytes()).unwrap();
+    
+    let mut wkpdf = Command::new("wkhtmltopdf");
+    wkpdf.arg("--page-size");
+    wkpdf.arg("A4");
+    wkpdf.arg("--margin-left");
+    wkpdf.arg("20mm");
+    wkpdf.arg("--margin-right");
+    wkpdf.arg("20mm");
+    wkpdf.arg("--margin-top");
+    wkpdf.arg("20mm");
+    wkpdf.arg("--margin-bottom");
+    wkpdf.arg("20mm");
+    wkpdf.arg(&temp_html_path);
+    wkpdf.arg(&pdf_docstore_path);
+    let result = wkpdf.output();
+    println!("wkhtmltopdf {:?} -> {:?} -> {:?}", &temp_html_path, &pdf_docstore_path, result);
+    
+    create_document_image(conn, pdf_path, Some(doc.id.clone()), "application/pdf".to_string(), true)
+}
+
 #[api_v2_operation]
 /// Create a Document
 ///
 /// Creates a new Document such as an Invoice, Quote, or Refund.
+/// As a side effect, creates a PDF version as a linked DocumentImage
 pub async fn add_document_json(
     pool: web::Data<DbPool>,
+    tmpl: web::Data<tera::Tera>,
+    config: web::Data<Config>,
     params: Json<Document>
 ) -> Result<Json<Document>,()> {
+    // TODO: check if SEPA or sepa
+    
     let conn = pool.get().expect("couldn't get db connection from pool");
 
-    let document = documents::create_document(&conn, &params);
-    Ok(Json(document))
+    let doc = documents::create_document(&conn, &params);
+
+    // create pdf
+    // 1. create html
+    // 2. create pdf from html and save it
+    // 3. create a documentimage with the pdf path
+
+    let pdf_path = format!("{}-{}-{}.pdf", &doc.kind, &doc.order_id.clone().unwrap(), &doc.serial_id.clone().unwrap());
+
+    create_pdf_document_image(&config, &conn, &tmpl, &doc, &pdf_path);
+    
+    Ok(Json(doc))
 }
 
 #[get("/documents/new")]

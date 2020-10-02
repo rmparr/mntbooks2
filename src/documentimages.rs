@@ -7,6 +7,9 @@ use crate::models::*;
 use crate::schema::document_images::dsl::*;
 use crate::schema::documents::dsl::*;
 
+use chrono::prelude::*;
+use crate::util::utc_iso_date_string;
+
 #[derive(serde::Deserialize, serde::Serialize, Debug, Clone, Apiv2Schema)]
 pub struct Query {
     pub year: Option<i32>,
@@ -75,4 +78,27 @@ pub fn update_document_image(conn: &SqliteConnection, di_update: &DocumentImageU
     println!("set_doc_id result: {:?}", res);
     doc_img = document_images.find(&di_update.path).first(conn).unwrap();
     Ok(doc_img)
+}
+
+pub fn create_document_image(conn: &SqliteConnection, img_path: &String, document_id: Option<String>, mime: String, is_done: bool) -> DocumentImage {
+    let pdfpath = if mime == "application/pdf" {
+        img_path.clone()
+    } else {
+        "".to_string()
+    };
+    
+    // TODO: detect mime, extract text, build PDF and thumbnail etc.
+    let doc_img = DocumentImage {
+        path: img_path.to_string(),
+        pdf_path: pdfpath,
+        mime_type: mime,
+        doc_id: document_id.clone(),
+        extracted_text: "".to_string(),
+        done: is_done,
+        created_at: utc_iso_date_string(&Utc::now()),
+        updated_at: utc_iso_date_string(&Utc::now()),
+    };
+    let res = diesel::insert_into(document_images).values(&doc_img).execute(conn);
+    println!("create_document_image result: {:?}", res);
+    doc_img
 }

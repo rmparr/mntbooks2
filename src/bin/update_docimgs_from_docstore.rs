@@ -5,25 +5,9 @@ use diesel::sqlite::SqliteConnection;
 use chrono::prelude::*;
 use mntbooks::models::DocumentImage;
 use mntbooks::schema::document_images::dsl::document_images;
+use mntbooks::documentimages::create_document_image;
 use mntbooks::mntconfig::Config;
 use mntbooks::util::{db_pool_from_url,utc_iso_date_string};
-
-fn create_document_image(conn: &SqliteConnection, img_path: &str) -> DocumentImage {
-    // TODO: detect mime, extract text, build PDF and thumbnail etc.
-    let doc_img = DocumentImage {
-        path: img_path.to_string(),
-        pdf_path: "".to_string(),
-        mime_type: "".to_string(),
-        doc_id: None,
-        extracted_text: "".to_string(),
-        done: false,
-        created_at: utc_iso_date_string(&Utc::now()),
-        updated_at: utc_iso_date_string(&Utc::now()),
-    };
-    let res = diesel::insert_into(document_images).values(&doc_img).execute(conn);
-    println!("create_document_image result: {:?}", res);
-    doc_img
-}
 
 pub fn get_all_document_images(conn: &SqliteConnection) -> Vec<DocumentImage> {
     let s = document_images.into_boxed();
@@ -41,16 +25,16 @@ fn main() {
             Ok(x) => {
                 if x.path().is_file() {
                     let y = x.file_name();
-                    let filename = y.to_str().unwrap();
+                    let filename = y.into_string().unwrap();
                     let mut is_new = true;
                     for doc_img in &doc_imgs {
-                        if &(doc_img.path.as_str()) == &filename {
+                        if doc_img.path == filename {
                             is_new = false;
                             break;
                         }
                     }
                     if is_new {
-                        create_document_image(&conn, &filename);
+                        create_document_image(&conn, &filename, None, "".to_string(), false);
                     }
                 } else {
                     println!("non-file?: {:?}", x.file_name());
