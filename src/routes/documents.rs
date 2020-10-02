@@ -201,6 +201,7 @@ pub async fn add_document(
 
 }
 
+// TODO Error handling and Result return type
 pub fn create_pdf_document_image(config: &Config, conn: &SqliteConnection, tmpl: &tera::Tera, doc: &Document, pdf_path: &String) -> DocumentImage {
     let pdf_docstore_path = Path::new(&config.docstore_path.clone())
         .join(pdf_path);
@@ -226,6 +227,8 @@ pub fn create_pdf_document_image(config: &Config, conn: &SqliteConnection, tmpl:
     wkpdf.arg(&pdf_docstore_path);
     let result = wkpdf.output();
     println!("wkhtmltopdf {:?} -> {:?} -> {:?}", &temp_html_path, &pdf_docstore_path, result);
+
+    std::fs::remove_file(temp_html_path).unwrap();
     
     create_document_image(conn, pdf_path, Some(doc.id.clone()), "application/pdf".to_string(), true)
 }
