@@ -8,10 +8,9 @@ use uuid::Uuid;
 use regex::Regex;
 
 use chrono::prelude::*;
+use paperclip::actix::Apiv2Schema;
 
 use crate::util::utc_iso_date_string;
-
-// TODO: missing SKU in frontends
 
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct LineItem {
@@ -23,15 +22,18 @@ pub struct LineItem {
     pub amount_cents: i32
 }
 
-#[derive(serde::Deserialize, serde::Serialize, Debug, Clone)]
+/// Query parameters for Documents
+#[derive(serde::Deserialize, serde::Serialize, Debug, Clone, Apiv2Schema)]
 pub struct Query {
+    /// Amount in cents
     pub amount: Option<i32>,
     pub year: Option<i32>,
     pub month: Option<i32>,
     pub offset: Option<i64>,
     pub limit: Option<i64>,
     pub text: Option<String>,
-    pub bookings_query: Option<String> // query string for bookings table
+    /// Query string for bookings table
+    pub bookings_query: Option<String>
 }
 
 pub fn line_items(doc: &Document) -> Vec<LineItem> {
@@ -55,13 +57,13 @@ pub fn new_doc_id(conn: &SqliteConnection, doc_kind: &str) -> String {
         .filter(doc_date.like(format!("{}-%", year)))
         .filter(kind.eq(&doc_kind))
         .first::<Option<String>>(conn) {
-        Ok(Some(i)) => {
-            let parts:Vec<&str> = i.split('-').collect();
-            let number = parts.last().unwrap().to_string().parse::<i32>().unwrap();
-            format!("{}-{:04}", year, number+1)
-        }
-        _ => format!("{}-0001", year)
-    };
+            Ok(Some(i)) => {
+                let parts:Vec<&str> = i.split('-').collect();
+                let number = parts.last().unwrap().to_string().parse::<i32>().unwrap();
+                format!("{}-{:04}", year, number+1)
+            }
+            _ => format!("{}-0001", year)
+        };
 
     new_id
 }

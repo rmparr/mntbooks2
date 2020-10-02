@@ -1,12 +1,13 @@
 extern crate diesel;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
+use paperclip::actix::Apiv2Schema;
 
 use crate::models::*;
 use crate::schema::document_images::dsl::*;
 use crate::schema::documents::dsl::*;
 
-#[derive(serde::Deserialize, serde::Serialize, Debug, Clone)]
+#[derive(serde::Deserialize, serde::Serialize, Debug, Clone, Apiv2Schema)]
 pub struct Query {
     pub year: Option<i32>,
     pub month: Option<i32>,

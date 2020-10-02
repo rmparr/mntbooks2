@@ -1,4 +1,8 @@
-use actix_web::{http, error, get, post, web, Error, HttpResponse};
+use actix_web::{http, error, get, post, Error, HttpResponse};
+use paperclip::actix::{
+    api_v2_operation,
+    web::{self, Json},
+};
 use diesel::r2d2::{self, ConnectionManager};
 use diesel::sqlite::SqliteConnection;
 type DbPool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
@@ -105,11 +109,12 @@ pub async fn get_booking(
     Ok(HttpResponse::Ok().content_type("text/html").body(s))
 }
 
-#[post("/bookings.json")]
+#[api_v2_operation]
+/// Sync external Booking 
 pub async fn post_bookings_json(
     pool: web::Data<DbPool>,
-    params: web::Json<bookings::NewBooking>
-) -> Result<HttpResponse, Error> {
+    params: Json<bookings::NewBooking>
+) -> Result<Json<Booking>, Error> {
     let conn = pool.get().expect("couldn't get db connection from pool");
 
     // TODO: validate input
@@ -118,9 +123,9 @@ pub async fn post_bookings_json(
     // currency: ABC (whitelist)
     // accounts: [a-z:]+
 
-    let b = bookings::create_or_update_booking(&conn, &params);
+    let b = bookings::sync_external_booking(&conn, &params);
     
-    Ok(HttpResponse::Ok().content_type("application/json").json(b))
+    Ok(Json(b))
 }
 
 #[post("/bookings/{id}")]
