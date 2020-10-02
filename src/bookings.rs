@@ -102,7 +102,9 @@ pub fn get_booking_by_id(conn: &SqliteConnection, find_id: &String) -> Option<Bo
     }
 }
 
-pub fn create_or_update_booking(conn: &SqliteConnection, new_booking: &NewBooking) -> Booking {
+/// Creates or updates a Booking with details from an external system (like a bank)
+/// In case a matching txn_id already exists, overwrite  only some details of the existing Booking from the external system 
+pub fn sync_external_booking(conn: &SqliteConnection, new_booking: &NewBooking) -> Booking {
     let mut b = Booking {
         id: Uuid::new_v4().to_string(),
         booking_date: new_booking.booking_date.clone(),
@@ -128,6 +130,8 @@ pub fn create_or_update_booking(conn: &SqliteConnection, new_booking: &NewBookin
             b.comment = existing.comment;
             b.done = existing.done;
             b.tax_code = existing.tax_code; // FIXME remove
+            b.credit_account = existing.credit_account;
+            b.debit_account = existing.debit_account;
         },
         _ => ()
     }

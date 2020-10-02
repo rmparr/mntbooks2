@@ -110,7 +110,7 @@ pub async fn get_booking(
 }
 
 #[api_v2_operation]
-/// Create a Booking
+/// Sync external Booking 
 pub async fn post_bookings_json(
     pool: web::Data<DbPool>,
     params: Json<bookings::NewBooking>
@@ -123,7 +123,7 @@ pub async fn post_bookings_json(
     // currency: ABC (whitelist)
     // accounts: [a-z:]+
 
-    let b = bookings::create_or_update_booking(&conn, &params);
+    let b = bookings::sync_external_booking(&conn, &params);
     
     Ok(Json(b))
 }
