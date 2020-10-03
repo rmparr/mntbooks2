@@ -1,3 +1,6 @@
+database_url = "./mntbooks.sqlite"
+http_bind = "0.0.0.0:8080"
+
 company_address = [
   "ACME, Inc.",
   "Megastreet 9000",
@@ -5,7 +8,8 @@ company_address = [
 ]
 
 invoice_legal_lines = [
-
+  "CEO: Jane Doe",
+  "VAT ID: XZY1234",
 ]
 
 invoice_bank_lines = [
@@ -23,10 +27,22 @@ invoice_payment_terms = [
 
 invoice_signature_lines = [
   "Jane Doe",
-  "CFO"
+  "CEO"
 ]
 
 docstore_path = "./docstore"
+
+[invoice_payment_terms]
+"SEPA" = "Bitte begleichen Sie die Rechnung innerhalb von 7 Tagen ab Rechnungsdatum."
+"paypal" = "Die Rechnung wurde bereits per PayPal beglichen."
+"PayPal or Credit Card" = "Die Rechnung wurde bereits per PayPal beglichen."
+"Manual Payment" = "Bitte begleichen Sie die Rechnung innerhalb von 7 Tagen ab Rechnungsdatum."
+
+[tax_rates]
+"EU7" = "0.07"
+"EU16" = "0.16"
+"EU19" = "0.19"
+"NONEU0" = "0"
 
 datev_export_path = "./datev-export"
 datev_advisor_id = "123456"
