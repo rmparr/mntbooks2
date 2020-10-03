@@ -2,12 +2,11 @@ extern crate toml;
 extern crate mntbooks;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
-use chrono::prelude::*;
 use mntbooks::models::DocumentImage;
 use mntbooks::schema::document_images::dsl::document_images;
 use mntbooks::documentimages::create_document_image;
 use mntbooks::mntconfig::Config;
-use mntbooks::util::{db_pool_from_url,utc_iso_date_string};
+use mntbooks::util::db_pool_from_url;
 
 pub fn get_all_document_images(conn: &SqliteConnection) -> Vec<DocumentImage> {
     let s = document_images.into_boxed();
