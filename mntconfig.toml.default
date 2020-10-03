@@ -17,13 +17,7 @@ invoice_bank_lines = [
   "CyberBank"
 ]
 
-invoice_outro_lines_no_tax = [
-  "Steuerfreie Ausfuhrlieferungen nach § 4 Nr. 1a UStG in Verbindung mit § 6 UStG."
-]
-
-invoice_payment_terms = [
-  "Bitte begleichen Sie die Rechnung innerhalb von 7 Tagen ab Rechnungsdatum."
-]
+invoice_outro_no_tax = "Steuerfreie Ausfuhrlieferungen nach § 4 Nr. 1a UStG in Verbindung mit § 6 UStG."
 
 invoice_signature_lines = [
   "Jane Doe",
@@ -31,6 +25,10 @@ invoice_signature_lines = [
 ]
 
 docstore_path = "./docstore"
+
+datev_export_path = "./datev-export"
+datev_advisor_id = "123456"
+datev_client_id = "24242"
 
 [invoice_payment_terms]
 "SEPA" = "Bitte begleichen Sie die Rechnung innerhalb von 7 Tagen ab Rechnungsdatum."
@@ -43,10 +41,6 @@ docstore_path = "./docstore"
 "EU16" = "0.16"
 "EU19" = "0.19"
 "NONEU0" = "0"
-
-datev_export_path = "./datev-export"
-datev_advisor_id = "123456"
-datev_client_id = "24242"
 
 [datev_account1_map]
 "shipping" = "4910"
