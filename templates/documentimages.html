@@ -9,19 +9,21 @@
 
     <form class="filter" method="GET" action="/documentimages">
       <fieldset>
-        <input name="text" type="search" placeholder="Search">
+        <input name="year" type="number" placeholder="Year" value="{{q.year}}">
+        <input name="month" type="number" placeholder="Month" value="{{q.month}}">
+        <input name="text" type="search" placeholder="Search" value="{{q.text}}">
         <label>
           Done:
           <select name="done">
             <option value="">All</option>
-            <option value="true">True</option>
-            <option value="false" selected>False</option>
+            <option value="true" {% if q.done=="true" %}selected{% endif %}>True</option>
+            <option value="false" {% if q.done=="false" %}selected{% endif %}>False</option>
           </select>
         </label>
         <input type="submit" value="Filter">
       </fieldset>
     </form>
-    
+
     <table class="documentimages">
       <tr>
         <th>Path</th>
