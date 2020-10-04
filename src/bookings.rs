@@ -11,14 +11,27 @@ use crate::util::utc_iso_date_string;
 
 #[derive(serde::Deserialize,serde::Serialize)]
 pub struct Query {
-    year: Option<String>,
-    month: Option<String>,
-    credit_account: Option<String>,
-    debit_account: Option<String>,
-    details: Option<String>,
-    offset: Option<i64>,
-    limit: Option<i64>,
-    done: Option<String>
+    pub year: Option<String>,
+    pub month: Option<String>,
+    pub credit_account: Option<String>,
+    pub debit_account: Option<String>,
+    pub details: Option<String>,
+    pub offset: Option<i64>,
+    pub limit: Option<i64>,
+    pub done: Option<String>
+}
+
+impl Query {
+    pub fn is_empty(&self) -> bool {
+        !self.year.is_some() &&
+            !self.month.is_some() &&
+            !self.credit_account.is_some() &&
+            !self.debit_account.is_some() &&
+            !self.details.is_some() &&
+            !self.offset.is_some() &&
+            !self.limit.is_some() &&
+            !self.done.is_some()
+    }
 }
 
 #[derive(serde::Deserialize, Apiv2Schema)]
