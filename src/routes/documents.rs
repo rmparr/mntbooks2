@@ -208,8 +208,8 @@ pub async fn add_document(
 
 }
 
-// TODO Error handling and Result return type
-pub fn create_pdf_document_image(config: &Config, conn: &SqliteConnection, tmpl: &tera::Tera, doc: &Document, pdf_path: &String) -> DocumentImage {
+// TODO Error handling
+pub fn create_pdf_document_image(config: &Config, conn: &SqliteConnection, tmpl: &tera::Tera, doc: &Document, pdf_path: &String) -> Result<DocumentImage, Error> {
     let pdf_docstore_path = Path::new(&config.docstore_path.clone())
         .join(pdf_path);
 
@@ -237,7 +237,7 @@ pub fn create_pdf_document_image(config: &Config, conn: &SqliteConnection, tmpl:
 
     std::fs::remove_file(temp_html_path).unwrap();
 
-    create_document_image(conn, pdf_path, Some(doc.id.clone()), "application/pdf".to_string(), true)
+    Ok(create_document_image(conn, pdf_path, Some(doc.id.clone()), "application/pdf".to_string(), true))
 }
 
 #[api_v2_operation]
@@ -264,7 +264,7 @@ pub async fn add_document_json(
 
     let pdf_path = format!("{}-{}-{}.pdf", &doc.kind, &doc.order_id.clone().unwrap(), &doc.serial_id.clone().unwrap());
 
-    create_pdf_document_image(&config, &conn, &tmpl, &doc, &pdf_path);
+    create_pdf_document_image(&config, &conn, &tmpl, &doc, &pdf_path).unwrap();
 
     Ok(Json(doc))
 }
