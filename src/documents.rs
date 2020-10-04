@@ -70,7 +70,10 @@ pub fn new_doc_id(conn: &SqliteConnection, doc_kind: &str) -> String {
         .first::<Option<String>>(conn) {
             Ok(Some(i)) => {
                 let parts:Vec<&str> = i.split('-').collect();
-                let number = parts.last().unwrap().to_string().parse::<i32>().unwrap();
+                let number = match parts.last().unwrap().to_string().parse::<i32>() {
+                    Ok(num) => num,
+                    _ => 0
+                };
                 format!("{}-{:04}", year, number+1)
             }
             _ => format!("{}-0001", year)
