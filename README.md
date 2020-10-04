@@ -49,6 +49,35 @@ There's currently no `/` route. Some useful endpoints:
 - `/api-spec` OpenAPI JSON spec of the JSON API endpoints
 - `/api-docs` ReDoc HTML frontend for the API docs
 
+## Workflow
+
+### Bank/Paypal transactions
+
+The `scripts` folder contains two examples for importing bookings from external transactions, in this case FinTS bank accounts and PayPal. You can run tasks like these regularly to sync your asset movements into mntbooks2.
+
+### Docstore
+
+If you have a document scanner and/or a process to store incoming PDF receipts, you should collect them in a central folder called the Docstore. Mntbooks2 has a CLI task that finds new files added to the folder and registers them as DocumentImages. You can then create a Document in the web interface for each DocumentImage to register its metadata like date, invoice number, amount etc.
+
+To regularly scan your incoming PDF folder for new DocumentImages, set up a cronjob like:
+```crontab
+* * * * *  cd /home/mntbooks/mntbooks2 && ./target/debug/update_docimgs_from_docstore
+```
+
+### Link Documents to Bookings
+
+No booking without a receipt: each Booking has an Edit link that allows you to add/change the debit and credit accounts for this Booking as well as link any number of Documents to the booking. You can set the Booking's `done` flag `true` if you think your Booking is complete.
+
+### Creating Outbound Documents
+
+You can create your own Documents like quotes, invoices and refunds manually by using the built-in web form or automatically by using the `/documents.json` API. For example, MNT Research uses the Solidus shop system and a rake task that creates an invoice in mntbooks2 for each order via the API.
+
+### DATEV Export
+
+At the bottom of each `/bookings` page there's a link to a `/bookings-datev` page with the same query. This allows you to create "DATEV Buchungsstapel" folders containing a DATEV CSV file and the matching receipts (Documents). Tax advisors in Germany can import a folder like this into DATEV via "Beleg2Buchung".
+
+This is more useful if you have set up a mapping of your account names to SKR ("Standardkontenrahmen") in `mntconfig.toml`.
+
 ## Technologies
 
 - Rust
