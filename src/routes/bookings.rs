@@ -15,6 +15,7 @@ use crate::models::*;
 use base64;
 use bytes::Bytes;
 use std::collections::HashMap;
+use chrono::prelude::*;
 
 #[derive(serde::Serialize)]
 struct BookingPlusDocs {
@@ -30,15 +31,22 @@ pub async fn get_bookings(
 ) -> Result<HttpResponse, Error> {
     let conn = pool.get().expect("couldn't get db connection from pool");
 
-    let results:Vec<Booking> = bookings::get_all_bookings(&conn, &q);
+    let mut query = q.into_inner();
+    if query.is_empty() {
+        let now = &Utc::now();
+        query.year = Some(now.year().to_string());
+        query.month = Some(now.month().to_string());
+    }
+
+    let results:Vec<Booking> = bookings::get_all_bookings(&conn, &query);
     let mut account_sums:HashMap<String,i32> = HashMap::new();
-    
+
     let mut bookings_plus_docs:Vec<BookingPlusDocs> = Vec::new();
     for booking in results {
         // calculate some stats
         *account_sums.entry(booking.credit_account.clone()).or_insert(0) += booking.amount_cents;
         *account_sums.entry(booking.debit_account.clone()).or_insert(0) -= booking.amount_cents;
-        
+
         let booking_docs = bookingdocs::get_bookingdocs(&conn, &booking);
         let mut docs: Vec<Document> = Vec::new();
         for booking_doc in booking_docs {
@@ -56,7 +64,6 @@ pub async fn get_bookings(
         bookings_plus_docs.push(booking_plus_docs);
     }
 
-    let query = q.into_inner();
     let mut ctx = tera::Context::new();
     ctx.insert("bookings_plus_docs", &bookings_plus_docs);
     ctx.insert("q", &query);
@@ -67,7 +74,7 @@ pub async fn get_bookings(
     let s = tmpl.render("bookings.html", &ctx)
         .map_err(|e| error::ErrorInternalServerError(format!("Template error: {:?}", e)))
         .unwrap();
-    
+
     Ok(HttpResponse::Ok().content_type("text/html").body(s))
 }
 
@@ -82,9 +89,16 @@ pub async fn get_booking(
     let booking = bookings::get_booking_by_id(&conn, &path.0).unwrap();
     let mut ctx = tera::Context::new();
 
-    let mut queried_docs = documents::get_documents(&conn, &docq);
+    let mut docquery = docq.into_inner();
+    if docquery.is_empty() {
+        let now = &Utc::now();
+        docquery.year = Some(now.year().to_string());
+        docquery.amount = Some(booking.amount_cents.to_string());
+    }
+
+    let mut queried_docs = documents::get_documents(&conn, &docquery);
     let mut docs:Vec<Document> = vec!();
-    
+
     let doc_ids:Vec<String> = bookingdocs::get_bookingdocs(&conn, &booking).iter().map(|bd| {
         docs.push(documents::get_document_by_id(&conn, &bd.doc_id).unwrap());
         queried_docs.retain(|qd| {
@@ -98,19 +112,20 @@ pub async fn get_booking(
     ctx.insert("booking", &booking);
     ctx.insert("doc_ids", &doc_ids);
     ctx.insert("documents", &docs);
+    ctx.insert("q", &docquery);
+    ctx.insert("bookings_query", &docquery.bookings_query);
     ctx.insert("filter_action", &format!("/bookings/{}", &booking.id));
-    ctx.insert("bookings_query", &docq.bookings_query);
     ctx.insert("accounts", &bookingdocs::get_all_accounts(&conn));
 
     let s = tmpl.render("booking_edit.html", &ctx)
         .map_err(|e| error::ErrorInternalServerError(format!("Template error: {:?}", e)))
         .unwrap();
-    
+
     Ok(HttpResponse::Ok().content_type("text/html").body(s))
 }
 
 #[api_v2_operation]
-/// Sync external Booking 
+/// Sync external Booking
 pub async fn post_bookings_json(
     pool: web::Data<DbPool>,
     params: Json<bookings::NewBooking>
@@ -124,7 +139,7 @@ pub async fn post_bookings_json(
     // accounts: [a-z:]+
 
     let b = bookings::sync_external_booking(&conn, &params);
-    
+
     Ok(Json(b))
 }
 
@@ -144,12 +159,12 @@ pub async fn post_bookings(
 
     let booking_id = &path.0;
     let text = String::from_utf8(bytes.to_vec()).unwrap();
-    
+
     let qs = serde_qs::Config::new(1, false); // max_depth, strict
     match qs.deserialize_str(&text) {
         Ok(params) => {
             bookings::update_booking(&conn, booking_id, &params);
-            
+
             // update the booking -> document associations
 
             bookingdocs::delete_all_bookingdocs_for_booking(&conn, booking_id);
@@ -165,7 +180,7 @@ pub async fn post_bookings(
                 },
                 _ => ()
             }
-            
+
             let href = if params.stay {
                 match params.bookings_query {
                     Some(q) => format!("/bookings/{}?bookings_query={}", booking_id, &q),

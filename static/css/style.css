@@ -1,21 +1,30 @@
 @import url('https://rsms.me/inter/inter.css');
 
 * { font-family: "Inter", "Inter UI", "Helvetica Neue", sans-serif; }
-.amount { text-align: right; }
-.credit-bank .amount { font-weight: bold; }
-.amount.positive {
-    font-weight: bold;
-    background-color: lightgreen;
-}
-.amount.negative {
-    font-weight: bold;
-    background-color: lightcoral;
-}
-.date { white-space: nowrap; }
+
 body {
     margin: 20px;
     margin-top: 100px;
 }
+
+.amount {
+    text-align: right;
+}
+
+.amount.positive {
+    font-weight: bold;
+    background-color: lightgreen;
+}
+
+.amount.negative {
+    font-weight: bold;
+    background-color: lightcoral;
+}
+
+.date, .actions {
+    white-space: nowrap;
+}
+
 .details { width: 640px; }
 
 .list img {
@@ -32,8 +41,18 @@ fieldset {
     padding: 0;
 }
 
+fieldset label {
+    display: inline-block;
+    min-width: 150px;
+}
+
 input[name=year], input[name=month] {
     width: 60px;
+}
+
+button {
+    min-width: 100px;
+    height: 36px;
 }
 
 a {
@@ -66,6 +85,11 @@ form.filter {
     background-color: white;
     padding-top: 10px;
     padding-bottom: 10px;
+}
+
+.filter-wrapper form.filter {
+    position: relative;
+    top: 0;
 }
 
 #logo img {
@@ -105,41 +129,6 @@ tr.month-row td {
 
 tr.highlight {
     background-color: #c0ffff;
-}
-
-.form-group {
-    margin-bottom: 1em;
-}
-
-.form-group input, .form-group select {
-    width: 300px;
-    font-size: 1.2rem;
-}
-
-.autocomplete-suggestions {
-    width: 800px !important;
-    
-    /*left: 20% !important;*/
-}
-
-.autocomplete-suggestion {
-    white-space: normal !important;
-    padding: 0.3em 0.6em !important;
-}
-
-.autocomplete-suggestion > span.sm {
-    width: 120px;
-    display: inline-block;
-}
-
-.autocomplete-suggestion > span.smr {
-    width: 120px;
-    display: inline-block;
-    text-align: right;
-}
-
-.autocomplete-suggestion img {
-    width: 128px;
 }
 
 a.btn {
@@ -187,4 +176,3 @@ iframe.documentimage {
     width: calc(100vw - 690px);
     height: calc(100vh - 125px);
 }
-

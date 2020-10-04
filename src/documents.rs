@@ -26,14 +26,25 @@ pub struct LineItem {
 #[derive(serde::Deserialize, serde::Serialize, Debug, Clone, Apiv2Schema)]
 pub struct Query {
     /// Amount in cents
-    pub amount: Option<i32>,
-    pub year: Option<i32>,
-    pub month: Option<i32>,
+    pub amount: Option<String>,
+    pub year: Option<String>,
+    pub month: Option<String>,
     pub offset: Option<i64>,
     pub limit: Option<i64>,
     pub text: Option<String>,
     /// Query string for bookings table
     pub bookings_query: Option<String>
+}
+
+impl Query {
+    pub fn is_empty(&self) -> bool {
+        self.amount.is_none() &&
+            self.year.is_none() &&
+            self.month.is_none() &&
+            self.offset.is_none() &&
+            self.limit.is_none() &&
+            self.text.is_none()
+    }
 }
 
 pub fn line_items(doc: &Document) -> Vec<LineItem> {
@@ -100,29 +111,33 @@ pub fn get_documents(conn: &SqliteConnection, q: &Query) -> Vec<Document> {
         Some(limit) => s.limit(limit),
         _ => s
     };
-    
-    let s = match q.year {
-        Some(year) => s.filter(crate::schema::documents::dsl::created_at.like(format!("{:04}-%", year))),
+
+    let s = match &q.year {
+        Some(year) if year.len()>=4 => s.filter(crate::schema::documents::dsl::doc_date.like(format!("{}-%", year))),
         _ => s
     };
 
-    let s = match q.month {
-        Some(month) => s.filter(crate::schema::documents::dsl::created_at.like(format!("%-{:02}-%", month))),
+    let s = match &q.month {
+        Some(month) if month.len()>=1 => s.filter(crate::schema::documents::dsl::doc_date
+                                                  .like(format!("%-{:02}-%", month.parse::<i32>().unwrap()))),
         _ => s
     };
-    
+
     let s = match &q.text {
-        Some(t) => s.filter(foreign_serial_id.like(format!("%{}%", t))
+        Some(t) if t.len()>=1 => s.filter(foreign_serial_id.like(format!("%{}%", t))
                             .or(customer_account.like(format!("%{}%", t)))
                             .or(account.like(format!("%{}%", t)))
                             .or(order_id.like(format!("%{}%", t)))
                             .or(serial_id.like(format!("%{}%", t)))),
         _ => s
     };
-    
-    let s = match q.amount {
-        Some(amt) if (amt>0) => s.filter(amount_cents.gt(amt-100)
-                                         .and(amount_cents.lt(amt+100))),
+
+    let s = match &q.amount {
+        Some(amt) if amt.len()>=1 => {
+            let a = amt.parse::<i32>().unwrap();
+            s.filter(amount_cents.gt(a-100)
+                     .and(amount_cents.lt(a+100)))
+        },
         _ => s
     };
 
