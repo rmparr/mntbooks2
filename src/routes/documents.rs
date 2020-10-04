@@ -98,26 +98,25 @@ pub fn document_to_html(config: &Config, tmpl: &tera::Tera, doc: &Document) -> S
         }
     };
 
-    // FIXME: keeping this around in case we need a different calculation
-    // for vat included vs not included later
-    let vat_included = match &doc.vat_included {
-        Some(s) if s == "true" => true,
-        Some(s) if s == "false" => false,
-        _ => {
-            println!("warning: can't parse vat_included {:?} in document {:?}", doc.vat_included, doc.serial_id);
-            false
-        }
-    };
+    // // FIXME: keeping this around in case we need a different calculation
+    // // for vat included vs not included later
+    // let vat_included = match &doc.vat_included {
+    //     Some(s) if s == "true" => true,
+    //     Some(s) if s == "false" => false,
+    //     _ => {
+    //         println!("warning: can't parse vat_included {:?} in document {:?}", doc.vat_included, doc.serial_id);
+    //         false
+    //     }
+    // };
 
     let mut outro = "".to_string();
 
     let mut net_total = Decimal::new(doc.amount_cents.unwrap() as i64, 2);
     let mut total = net_total.clone();
-    let mut tax_total = Decimal::new(0,0);
 
     // FIXME: note: invoice totals are currently always stored as if VAT was included
     net_total = total / (Decimal::new(1,0) + tax_rate);
-    tax_total = total - net_total;
+    let mut tax_total = total - net_total;
 
     if tax_rate == Decimal::new(0,0) {
         outro += &config.invoice_outro_no_tax;

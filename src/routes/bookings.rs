@@ -52,7 +52,7 @@ pub async fn get_bookings(
         for booking_doc in booking_docs {
             match documents::get_document_by_id(&conn, &booking_doc.doc_id) {
                 Ok(doc) => docs.push(doc),
-                Err(e) => {
+                Err(_) => {
                     println!("get_bookings database inconsistency: doc with id {} linked to booking {} not found!", &booking_doc.doc_id, &booking.id);
                 }
             };
