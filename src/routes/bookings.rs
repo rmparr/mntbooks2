@@ -89,7 +89,14 @@ pub async fn get_booking(
     let booking = bookings::get_booking_by_id(&conn, &path.0).unwrap();
     let mut ctx = tera::Context::new();
 
-    let mut queried_docs = documents::get_documents(&conn, &docq);
+    let mut docquery = docq.into_inner();
+    if docquery.is_empty() {
+        let now = &Utc::now();
+        docquery.year = Some(now.year().to_string());
+        docquery.amount = Some(booking.amount_cents.to_string());
+    }
+
+    let mut queried_docs = documents::get_documents(&conn, &docquery);
     let mut docs:Vec<Document> = vec!();
 
     let doc_ids:Vec<String> = bookingdocs::get_bookingdocs(&conn, &booking).iter().map(|bd| {
@@ -105,8 +112,9 @@ pub async fn get_booking(
     ctx.insert("booking", &booking);
     ctx.insert("doc_ids", &doc_ids);
     ctx.insert("documents", &docs);
+    ctx.insert("q", &docquery);
+    ctx.insert("bookings_query", &docquery.bookings_query);
     ctx.insert("filter_action", &format!("/bookings/{}", &booking.id));
-    ctx.insert("bookings_query", &docq.bookings_query);
     ctx.insert("accounts", &bookingdocs::get_all_accounts(&conn));
 
     let s = tmpl.render("booking_edit.html", &ctx)

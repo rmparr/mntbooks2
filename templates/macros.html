@@ -3,35 +3,37 @@
       <span id="logo">
         <b><img src="/img/logo.png"> Books</b>
       </span>
-      
+
       <span>
         <a href="/bookings" {% if active == "bookings" %}class="active"{% endif %}>Book</a>
       </span>
-      
+
       <span>
         <a href="/documents" {% if active == "documents" %}class="active"{% endif %}>Documents</a>
       </span>
-      
+
       <span>
         <a href="/documents/new" {% if active == "document_new" %}class="active"{% endif %}>New Document</a>
       </span>
-      
+
       <span>
         <a href="/documentimages?done=false" {% if active == "documentimages" %}class="active"{% endif %}>Images</a>
       </span>
-  
+
     </nav>
 {% endmacro nav %}
 
-{% macro documents_filter(action,bookings_query) %}
-    
+{% macro documents_filter(action,q,bookings_query) %}
+
     <form class="filter" method="GET" action="{{action}}">
       <fieldset>
-        <input name="text" type="search" placeholder="Search">
-        <input name="amount" type="number" placeholder="Amount (Cents)" value="0">
+        <input name="year" type="number" placeholder="Year" value="{{q.year}}">
+        <input name="month" type="number" placeholder="Month" value="{{q.month}}">
+        <input name="text" type="search" placeholder="Search" value="{{q.text}}">
+        <input name="amount" type="number" placeholder="Amount (Cents)" value="{{q.amount}}">
         <input type="submit" value="Filter">
         <input name="bookings_query" type="hidden" value="{{bookings_query}}">
       </fieldset>
     </form>
-    
+
 {% endmacro documents_filter %}
