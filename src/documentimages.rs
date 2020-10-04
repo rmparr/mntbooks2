@@ -12,10 +12,10 @@ use crate::util::utc_iso_date_string;
 
 #[derive(serde::Deserialize, serde::Serialize, Debug, Clone, Apiv2Schema)]
 pub struct Query {
-    pub year: Option<i32>,
-    pub month: Option<i32>,
+    pub year: Option<String>,
+    pub month: Option<String>,
     pub text: Option<String>,
-    pub done: Option<bool>,
+    pub done: Option<String>,
     pub doc_id: Option<String>,
     pub offset: Option<i64>,
     pub limit: Option<i64>,
@@ -42,13 +42,13 @@ pub fn get_document_images(conn: &SqliteConnection, q: &Query) -> Vec<DocumentIm
         _ => s
     };
 
-    let s = match q.year {
-        Some(year) => s.filter(crate::schema::document_images::dsl::created_at.like(format!("{:04}-%", year))),
+    let s = match &q.year {
+        Some(year) if year.len()>=4 => s.filter(crate::schema::document_images::dsl::created_at.like(format!("{}-%", year))),
         _ => s
     };
 
-    let s = match q.month {
-        Some(month) => s.filter(crate::schema::document_images::dsl::created_at.like(format!("%-{:02}-%", month))),
+    let s = match &q.month {
+        Some(month) if month.len()>=1 => s.filter(crate::schema::document_images::dsl::created_at.like(format!("%-{:02}-%", month.parse::<i32>().unwrap()))),
         _ => s
     };
 
@@ -62,9 +62,10 @@ pub fn get_document_images(conn: &SqliteConnection, q: &Query) -> Vec<DocumentIm
         Some(did) => s.filter(doc_id.eq(did)),
         _ => s
     };
-    
-    let s = match q.done {
-        Some(d) => s.filter(done.eq(d)),
+
+    let s = match &q.done {
+        Some(d) if d=="true" => s.filter(done.eq(true)),
+        Some(d) if d=="false" => s.filter(done.eq(false)),
         _ => s
     };
 
@@ -86,7 +87,7 @@ pub fn create_document_image(conn: &SqliteConnection, img_path: &String, documen
     } else {
         "".to_string()
     };
-    
+
     // TODO: detect mime, extract text, build PDF and thumbnail etc.
     let doc_img = DocumentImage {
         path: img_path.to_string(),

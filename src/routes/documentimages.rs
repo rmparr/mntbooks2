@@ -46,6 +46,7 @@ pub async fn get_documentimages(
     q.active = None;
     let qs = serde_qs::to_string(&q).unwrap();
     ctx.insert("query", &qs);
+    ctx.insert("q", &q);
 
     let s = tmpl.render("documentimages.html", &ctx)
         .map_err(|e| error::ErrorInternalServerError(format!("Template error: {:?}", e)))
