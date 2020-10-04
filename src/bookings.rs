@@ -23,14 +23,14 @@ pub struct Query {
 
 impl Query {
     pub fn is_empty(&self) -> bool {
-        !self.year.is_some() &&
-            !self.month.is_some() &&
-            !self.credit_account.is_some() &&
-            !self.debit_account.is_some() &&
-            !self.details.is_some() &&
-            !self.offset.is_some() &&
-            !self.limit.is_some() &&
-            !self.done.is_some()
+        self.year.is_none() &&
+            self.month.is_none() &&
+            self.credit_account.is_none() &&
+            self.debit_account.is_none() &&
+            self.details.is_none() &&
+            self.offset.is_none() &&
+            self.limit.is_none() &&
+            self.done.is_none()
     }
 }
 
@@ -64,7 +64,7 @@ pub fn get_all_bookings(conn: &SqliteConnection, q: &Query) -> Vec<Booking> {
         Some(offset) => s.offset(offset),
         _ => s
     };
-    
+
     let s = match q.limit {
         Some(limit) => s.limit(limit),
         _ => s
@@ -74,24 +74,24 @@ pub fn get_all_bookings(conn: &SqliteConnection, q: &Query) -> Vec<Booking> {
         Some(year) if year.len()>=4 => s.filter(booking_date.like(format!("{}-%", year))),
         _ => s
     };
-    
+
     let s = match &q.month {
         Some(month) if month.len()>=1 => s.filter(booking_date.like(format!("%-{:02}-%", month.parse::<i32>().unwrap()))),
         _ => s
     };
-    
+
     let s = match &q.credit_account {
         Some(acc) if !acc.starts_with("!") => s.filter(credit_account.like(format!("%{}%", acc))),
         Some(acc) if acc.starts_with("!") => s.filter(credit_account.not_like(format!("%{}%", acc[1..].to_string()))),
         _ => s
     };
-    
+
     let s = match &q.debit_account {
         Some(acc) if !acc.starts_with("!") => s.filter(debit_account.like(format!("%{}%", acc))),
         Some(acc) if acc.starts_with("!") => s.filter(debit_account.not_like(format!("%{}%", acc[1..].to_string()))),
         _ => s
     };
-    
+
     let s = match &q.details {
         Some(d) => s.filter(details.like(format!("%{}%", d))),
         _ => s
@@ -116,7 +116,7 @@ pub fn get_booking_by_id(conn: &SqliteConnection, find_id: &String) -> Option<Bo
 }
 
 /// Creates or updates a Booking with details from an external system (like a bank)
-/// In case a matching txn_id already exists, overwrite  only some details of the existing Booking from the external system 
+/// In case a matching txn_id already exists, overwrite  only some details of the existing Booking from the external system
 pub fn sync_external_booking(conn: &SqliteConnection, new_booking: &NewBooking) -> Booking {
     let mut b = Booking {
         id: Uuid::new_v4().to_string(),
