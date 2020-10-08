@@ -1,1 +1,15 @@
+# Ignore standard Rust things
+/debug
 /target
+Cargo.lock
+
+# Ignore configuration files
+mntconfig.toml
+.env
+
+# Ignore databases
+*.sqlite
+
+# Ignore attachment directories
+/docstore
+/datev-export
