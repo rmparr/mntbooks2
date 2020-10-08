@@ -35,9 +35,10 @@
         <label for="idate">Date:</label> <input type="text" id="idate" value="{{document.doc_date}}" onchange="recalc()"><br>
         <label for="ordernum">Order ID:</label> <input type="text" id="ordernum" onchange="recalc()"><br>
         <select id="payment-method" onchange="recalc()">
-          <option value="sepa" selected>SEPA</option>
-          <option value="paypal">paypal (paid)</option>
-          <option value="cash">cash (paid)</option>
+          <option value="" selected>Payment Method</option>
+          {% for term in invoice_payment_terms %}
+            <option value="{{term}}">{{term}}</option>
+          {% endfor %}
         </select>
         <select id="tax-code" onchange="recalc()">
           <option value="EU16" selected>EU 16%</option>
