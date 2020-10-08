@@ -321,9 +321,16 @@ pub async fn new_document(
 
     invoice_payment_terms.sort();
 
+    let mut tax_rates: Vec<String> = config.tax_rates.iter()
+        .map(|kv| kv.0.to_string())
+        .collect();
+
+    tax_rates.sort();
+
     ctx.insert("document", &document);
     ctx.insert("line_items", &items);
     ctx.insert("invoice_payment_terms", &invoice_payment_terms);
+    ctx.insert("tax_rates", &tax_rates);
 
     let s = tmpl.render("document_new.html", &ctx)
         .map_err(|e| error::ErrorInternalServerError(format!("Template error: {:?}", e)))
@@ -357,9 +364,16 @@ pub async fn copy_document(
 
     invoice_payment_terms.sort();
 
+    let mut tax_rates: Vec<String> = config.tax_rates.iter()
+        .map(|kv| kv.0.to_string())
+        .collect();
+
+    tax_rates.sort();
+
     ctx.insert("document", &doc);
     ctx.insert("line_items", &documents::line_items(&result));
     ctx.insert("invoice_payment_terms", &invoice_payment_terms);
+    ctx.insert("tax_rates", &tax_rates);
 
     // TODO Make .kind selected in template somehow?
 
