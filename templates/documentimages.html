@@ -42,13 +42,13 @@
       <h4>Document</h4>
       <input name="path" type="hidden" value="{{ active_di.path }}">
       <fieldset>
-        <input name="doc_date" type="text" placeholder="doc_date">
+        <input name="doc_date" type="text" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" placeholder="YYYY-MM-DD" required>
       </fieldset>
       <fieldset>
         <input name="foreign_serial_id" type="text" placeholder="foreign_serial_id">
       </fieldset>
       <fieldset>
-        <input name="amount_cents" type="text" placeholder="amount_cents">
+        <input name="amount_cents" type="text" pattern="[0-9]{1,}" placeholder="####" required>
       </fieldset>
       <fieldset>
         <input name="currency" type="text" placeholder="currency" value="EUR">
@@ -57,8 +57,9 @@
         <input name="customer_account" type="text" placeholder="customer_account" list="accounts">
       </fieldset>
       <fieldset>
-        <select name="done">
-          <option value="true" selected>True</option>
+        <select name="done" required>
+          <option value="" selected>Done?</option>
+          <option value="true">True</option>
           <option value="false">False</option>
         </select>
       </fieldset>
