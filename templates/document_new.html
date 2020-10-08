@@ -41,10 +41,10 @@
           {% endfor %}
         </select>
         <select id="tax-code" onchange="recalc()">
-          <option value="EU16" selected>EU 16%</option>
-          <option value="EU19">EU 19%</option>
-          <option value="EU7">EU 7%</option>
-          <option value="NONEU0">0%</option>
+          <option value="" selected>Tax Rate</option>
+          {% for rate in tax_rates %}
+            <option value="{{rate}}">{{rate}}</option>
+          {% endfor %}
         </select>
         <label><input type="checkbox" id="incl-vat" value="1" onchange="recalc()"> incl. VAT</label>
       </div>
