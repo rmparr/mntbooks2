@@ -21,18 +21,19 @@
         <input type="text" id="state" placeholder="State" value="{{document.customer_state}}" onchange="recalc()"><br>
         <input type="text" id="country" placeholder="DE" value="{{document.customer_country}}" onchange="recalc()">
       </div>
-      
+
       <div id="meta">
         <select id="kind" onchange="recalc()">
           <option value="invoice" selected>Invoice</option>
           <option value="quote">Quote</option>
           <option value="refund">Refund</option>
-	  <option value="delivery_note">Delivery Note</option><br>
-        </select> ID: <input type="text" id="id" placeholder="automatic"><br>
-        </select> Serial ID: <input type="text" id="serial_id" placeholder="automatic"><br>
-        <span>Replaces ID:</span> <input type="text" id="replaces_id" onchange="recalc()"><br>
-        <span>Date:</span> <input type="text" id="idate" value="{{document.doc_date}}" onchange="recalc()"><br>
-        <span>Order ID:</span> <input type="text" id="ordernum" onchange="recalc()"><br>
+          <option value="delivery_note">Delivery Note</option>
+        </select><br>
+        <label for="id">ID: </label><input type="text" id="id" placeholder="automatic"><br>
+        <label for="serial_id">Serial ID: </label><input type="text" id="serial_id" placeholder="automatic"><br>
+        <label for="replaces_id">Replaces ID:</label> <input type="text" id="replaces_id" onchange="recalc()"><br>
+        <label for="idate">Date:</label> <input type="text" id="idate" value="{{document.doc_date}}" onchange="recalc()"><br>
+        <label for="ordernum">Order ID:</label> <input type="text" id="ordernum" onchange="recalc()"><br>
         <select id="payment-method" onchange="recalc()">
           <option value="sepa" selected>SEPA</option>
           <option value="paypal">paypal (paid)</option>
@@ -115,15 +116,15 @@
     "EU7": 0.07,
     "NONEU0": 0
   }
-  
+
   function recalc() {
     var netTotal = 0.0
     numRows = 0
     var items = []
-    
+
     taxCode = document.getElementById("tax-code").value
     taxRate = TAX_RATES[taxCode]
-    
+
     while (true) {
       var key = "position-"+(numRows+1)
       var row = document.getElementById(key)
@@ -135,11 +136,11 @@
         var amountEl = document.getElementById(key+"-amount")
         var priceEl = document.getElementById(key+"-price")
         var sumEl = document.getElementById(key+"-sum")
-        
+
         var sum = (amountEl.value * priceEl.value).toFixed(2)
         sumEl.innerHTML = sum
         netTotal += parseFloat(sum)
-        
+
         items.push({
           sku: skuEl.value,
           title: titleEl.value,
@@ -152,12 +153,12 @@
         break
       }
     }
-    
+
     var netTotalEl = document.getElementById("total-net")
     var grandTotalEl = document.getElementById("total-grand")
     var taxTotalEl = document.getElementById("total-tax")
     var inclVAT = document.getElementById("incl-vat").checked
-    
+
     if (inclVAT) {
       var tax = ((netTotal/(1+taxRate)) * taxRate)
       var grandTotal = netTotal
@@ -166,13 +167,13 @@
       var tax = (netTotal * taxRate)
       var grandTotal = netTotal+tax
     }
-    
+
     taxTotalEl.innerHTML = tax.toFixed(2)
     grandTotalEl.innerHTML = grandTotal.toFixed(2)
     netTotalEl.innerHTML = netTotal.toFixed(2)
-    
+
     var paymentMethod = document.getElementById("payment-method").value
-    
+
     bookRow = {
       id: document.getElementById("id").value,
       serial_id: document.getElementById("serial_id").value,
@@ -200,10 +201,10 @@
       updated_at: new Date()  // FIXME
     }
   }
-  
+
   function addRow() {
     recalc()
-    
+
     var tbody = document.getElementById("positions")
     var template = document.getElementById("position-1")
     var id = numRows+1
@@ -213,17 +214,17 @@
     newRow.children[0].innerHTML = id
     tbody.appendChild(newRow)
   }
-  
+
   function deleteRow() {
     recalc()
-    
+
     var row = document.getElementById("position-"+(numRows))
     if (row && numRows > 1) row.remove()
   }
-  
+
   function finalize() {
     recalc()
-    
+
     var url = "/documents.json"
     var xhr = new XMLHttpRequest()
     xhr.onreadystatechange = function() {
