@@ -160,8 +160,13 @@ pub async fn get_document(
 ) -> Result<HttpResponse, Error> {
     let conn = pool.get().expect("couldn't get db connection from pool");
 
-    // TODO: 404 if not found
-    let result = documents::get_document_by_id(&conn, &path.0).unwrap();
+    let result = match documents::get_document_by_id(&conn, &path.0) {
+        Ok(res) => res,
+        Err(e) => {
+            assert_eq!(diesel::NotFound, e);
+            return Err(error::ErrorNotFound(e))
+        }
+    };
     let html = document_to_html(&config, &tmpl, &result);
 
     Ok(HttpResponse::Ok().content_type("text/html").body(html))
@@ -332,8 +337,13 @@ pub async fn copy_document(
 ) -> Result<HttpResponse, Error> {
     let conn = pool.get().expect("couldn't get db connection from pool");
 
-    // TODO: 404 if not found
-    let result = documents::get_document_by_id(&conn, &path.0).unwrap();
+    let result = match documents::get_document_by_id(&conn, &path.0) {
+        Ok(res) => res,
+        Err(e) => {
+            assert_eq!(diesel::NotFound, e);
+            return Err(error::ErrorNotFound(e))
+        }
+    };
     let mut ctx = tera::Context::new();
 
     let doc = Document {
