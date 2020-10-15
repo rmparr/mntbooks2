@@ -6,9 +6,7 @@
   </head>
   <body>
     {{ macros::nav(active="bookings") }}
-      
-    {{ macros::documents_filter(action=filter_action,bookings_query=bookings_query) }}
-    
+
     <form class="booking" method="POST" action="/bookings/{{ booking.id }}">
       <h4>Booking {{ booking.id }}</h4>
       <p>
@@ -23,29 +21,37 @@
       <p>
         Txn: {{booking.txn_id}}
       </p>
+
+      <h3>Data</h3>
+
       <fieldset>
+        <label>Credit:</label>
         <input name="credit_account" type="text" placeholder="credit_account" value="{{booking.credit_account}}" list="accounts">
       </fieldset>
       <fieldset>
+        <label>Debit:</label>
         <input name="debit_account" type="text" placeholder="debit_account" value="{{booking.debit_account}}" list="accounts">
       </fieldset>
       <fieldset>
+        <label>Comment:</label>
         <textarea name="comment" placeholder="comment">{{booking.comment}}</textarea>
       </fieldset>
       <fieldset>
+        <label>Done:</label>
         <select name="done">
           <option value="true" selected>True</option>
           <option value="false">False</option>
         </select>
       </fieldset>
       <input name="bookings_query" type="hidden" value="{{bookings_query}}">
-      
+
       <datalist id="accounts">
         {% for a in accounts %}
         <option value="{{a}}"></option>
         {% endfor %}
       </datalist>
-      
+
+      <h3>Linked Documents</h3>
       <table>
         <tr>
           <th>ID</th>
@@ -71,11 +77,16 @@
         </tr>
         {% endfor %}
       </table>
-      
-      <fieldset>
+
+      <fieldset style="margin-top: 1em; margin-bottom: 2em">
         <button name="stay" value="true">Apply</button>
         <button name="stay" value="false">OK</button>
       </fieldset>
     </form>
+
+    <h3>Documents Filter</h3>
+    <div class="filter-wrapper">
+      {{ macros::documents_filter(action=filter_action,q=q,bookings_query=bookings_query) }}
+    </div>
   </body>
 </html>

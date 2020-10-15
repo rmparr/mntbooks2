@@ -201,7 +201,7 @@ pub async fn get_bookings_datev_csv(
     let export_folder = Path::new(&config.datev_export_path.clone())
         .join(format!("{}", utc_iso_date_string(&Utc::now())));
 
-    fs::remove_dir_all(&export_folder);
+    fs::remove_dir_all(&export_folder).unwrap();
     fs::create_dir(&export_folder).unwrap();
     fs::create_dir(&export_folder.join("Belege")).unwrap();
 

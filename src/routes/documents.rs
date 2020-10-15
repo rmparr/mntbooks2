@@ -57,10 +57,18 @@ pub async fn get_documents(
 ) -> Result<HttpResponse, Error> {
     let conn = pool.get().expect("couldn't get db connection from pool");
 
-    let results = documents::get_documents(&conn, &q);
+    let mut query = q.into_inner();
+    if query.is_empty() {
+        let now = &Utc::now();
+        query.year = Some(now.year().to_string());
+        query.month = Some(now.month().to_string());
+    }
+
+    let results = documents::get_documents(&conn, &query);
 
     let mut ctx = tera::Context::new();
     ctx.insert("documents", &results);
+    ctx.insert("q", &query);
 
     let s = tmpl.render("documents.html", &ctx)
         .map_err(|e| error::ErrorInternalServerError(format!("Template error: {:?}", e)))
@@ -90,31 +98,30 @@ pub fn document_to_html(config: &Config, tmpl: &tera::Tera, doc: &Document) -> S
         }
     };
 
-    // FIXME: keeping this around in case we need a different calculation
-    // for vat included vs not included later
-    let vat_included = match &doc.vat_included {
-        Some(s) if s == "true" => true,
-        Some(s) if s == "false" => false,
-        _ => {
-            println!("warning: can't parse vat_included {:?} in document {:?}", doc.vat_included, doc.serial_id);
-            false
-        }
-    };
+    // // FIXME: keeping this around in case we need a different calculation
+    // // for vat included vs not included later
+    // let vat_included = match &doc.vat_included {
+    //     Some(s) if s == "true" => true,
+    //     Some(s) if s == "false" => false,
+    //     _ => {
+    //         println!("warning: can't parse vat_included {:?} in document {:?}", doc.vat_included, doc.serial_id);
+    //         false
+    //     }
+    // };
 
     let mut outro = "".to_string();
 
     let mut net_total = Decimal::new(doc.amount_cents.unwrap() as i64, 2);
     let mut total = net_total.clone();
-    let mut tax_total = Decimal::new(0,0);
 
     // FIXME: note: invoice totals are currently always stored as if VAT was included
     net_total = total / (Decimal::new(1,0) + tax_rate);
-    tax_total = total - net_total;
+    let mut tax_total = total - net_total;
 
     if tax_rate == Decimal::new(0,0) {
         outro += &config.invoice_outro_no_tax;
     }
-    
+
     net_total.rescale(2);
     tax_total.rescale(2);
     total.rescale(2);
@@ -201,17 +208,17 @@ pub async fn add_document(
 
 }
 
-// TODO Error handling and Result return type
-pub fn create_pdf_document_image(config: &Config, conn: &SqliteConnection, tmpl: &tera::Tera, doc: &Document, pdf_path: &String) -> DocumentImage {
+// TODO Error handling
+pub fn create_pdf_document_image(config: &Config, conn: &SqliteConnection, tmpl: &tera::Tera, doc: &Document, pdf_path: &String) -> Result<DocumentImage, Error> {
     let pdf_docstore_path = Path::new(&config.docstore_path.clone())
         .join(pdf_path);
-    
+
     let html = document_to_html(config, tmpl, doc);
 
     let temp_html_path = format!("{}.html",pdf_path);
     let mut temp_file = File::create(&temp_html_path).unwrap();
     temp_file.write_all(html.as_bytes()).unwrap();
-    
+
     let mut wkpdf = Command::new("wkhtmltopdf");
     wkpdf.arg("--page-size");
     wkpdf.arg("A4");
@@ -229,8 +236,8 @@ pub fn create_pdf_document_image(config: &Config, conn: &SqliteConnection, tmpl:
     println!("wkhtmltopdf {:?} -> {:?} -> {:?}", &temp_html_path, &pdf_docstore_path, result);
 
     std::fs::remove_file(temp_html_path).unwrap();
-    
-    create_document_image(conn, pdf_path, Some(doc.id.clone()), "application/pdf".to_string(), true)
+
+    Ok(create_document_image(conn, pdf_path, Some(doc.id.clone()), "application/pdf".to_string(), true))
 }
 
 #[api_v2_operation]
@@ -245,7 +252,7 @@ pub async fn add_document_json(
     params: Json<Document>
 ) -> Result<Json<Document>,()> {
     // TODO: check if SEPA or sepa
-    
+
     let conn = pool.get().expect("couldn't get db connection from pool");
 
     let doc = documents::create_document(&conn, &params);
@@ -257,8 +264,8 @@ pub async fn add_document_json(
 
     let pdf_path = format!("{}-{}-{}.pdf", &doc.kind, &doc.order_id.clone().unwrap(), &doc.serial_id.clone().unwrap());
 
-    create_pdf_document_image(&config, &conn, &tmpl, &doc, &pdf_path);
-    
+    create_pdf_document_image(&config, &conn, &tmpl, &doc, &pdf_path).unwrap();
+
     Ok(Json(doc))
 }
 
