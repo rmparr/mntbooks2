@@ -6,11 +6,13 @@ use crate::schema::documents::dsl::*;
 use diesel::dsl::*;
 use uuid::Uuid;
 use regex::Regex;
+use rust_decimal::prelude::*;
 
 use chrono::prelude::*;
 use paperclip::actix::Apiv2Schema;
 
 use crate::util::utc_iso_date_string;
+use crate::mntconfig::Config;
 
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct LineItem {
@@ -44,6 +46,52 @@ impl Query {
             self.offset.is_none() &&
             self.limit.is_none() &&
             self.text.is_none()
+    }
+}
+
+impl Document {
+    // FIXME: note: invoice totals are currently always stored as if VAT was included
+
+    // // FIXME: keeping this around in case we need a different calculation
+    // // for vat included vs not included later
+    // let vat_included = match &doc.vat_included {
+    //     Some(s) if s == "true" => true,
+    //     Some(s) if s == "false" => false,
+    //     _ => {
+    //         println!("warning: can't parse vat_included {:?} in document {:?}", doc.vat_included, doc.serial_id);
+    //         false
+    //     }
+    // };
+
+    pub fn get_tax_rate(&self, config: &Config) -> Decimal {
+        let tax_code_ = &self.tax_code.clone().unwrap();
+        let tax_rate:Decimal = match config.tax_rates.get(tax_code_) {
+            Some(rate) => Decimal::from_str(rate).unwrap(),
+            None => {
+                println!("warning: unknown tax code {:?} in document {:?}", tax_code_, &self.serial_id);
+                Decimal::new(0,2)
+            }
+        };
+        tax_rate
+    }
+
+    pub fn get_total(&self) -> Decimal {
+        let total = Decimal::new(self.amount_cents.unwrap() as i64, 2);
+        total
+    }
+
+    pub fn get_net_total(&self, config: &Config) -> Decimal {
+        let total = &self.get_total();
+        let tax_rate = &self.get_tax_rate(config);
+        let net_total = total / (Decimal::new(1,0) + tax_rate);
+        net_total
+    }
+
+    pub fn get_tax_total(&self, config: &Config) -> Decimal {
+        let total = &self.get_total();
+        let net_total = &self.get_net_total(config);
+        let tax_total = total - net_total;
+        tax_total
     }
 }
 

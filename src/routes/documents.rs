@@ -78,16 +78,6 @@ pub async fn get_documents(
 }
 
 pub fn document_to_html(config: &Config, tmpl: &tera::Tera, doc: &Document) -> String {
-    // TODO: move calculations to method of Document
-    let tax_code = &doc.tax_code.clone().unwrap();
-    let mut tax_rate:Decimal = match config.tax_rates.get(tax_code) {
-        Some(rate) => Decimal::from_str(rate).unwrap(),
-        None => {
-            println!("warning: unknown tax code {:?} in document {:?}", tax_code, doc.serial_id);
-            Decimal::new(0,2)
-        }
-    };
-
     let payment_method = &doc.payment_method.clone().unwrap();
     let empty_payment_terms = "".to_string();
     let payment_terms = match config.invoice_payment_terms.get(payment_method) {
@@ -98,35 +88,19 @@ pub fn document_to_html(config: &Config, tmpl: &tera::Tera, doc: &Document) -> S
         }
     };
 
-    // // FIXME: keeping this around in case we need a different calculation
-    // // for vat included vs not included later
-    // let vat_included = match &doc.vat_included {
-    //     Some(s) if s == "true" => true,
-    //     Some(s) if s == "false" => false,
-    //     _ => {
-    //         println!("warning: can't parse vat_included {:?} in document {:?}", doc.vat_included, doc.serial_id);
-    //         false
-    //     }
-    // };
-
-    let mut outro = "".to_string();
-
-    let mut net_total = Decimal::new(doc.amount_cents.unwrap() as i64, 2);
-    let mut total = net_total.clone();
-
-    // FIXME: note: invoice totals are currently always stored as if VAT was included
-    net_total = total / (Decimal::new(1,0) + tax_rate);
-    let mut tax_total = total - net_total;
-
-    if tax_rate == Decimal::new(0,0) {
-        outro += &config.invoice_outro_no_tax;
-    }
-
+    let mut tax_rate = doc.get_tax_rate(config);
+    let mut total = doc.get_total();
+    let mut net_total = doc.get_net_total(config);
+    let mut tax_total = doc.get_tax_total(config);
     net_total.rescale(2);
     tax_total.rescale(2);
     total.rescale(2);
     tax_rate *= Decimal::new(100,0);
     tax_rate.rescale(1);
+    let mut outro = "".to_string();
+    if tax_rate == Decimal::new(0,0) {
+        outro += &config.invoice_outro_no_tax;
+    }
 
     let mut ctx = tera::Context::new();
     ctx.insert("document", doc);
