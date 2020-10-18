@@ -271,7 +271,8 @@ pub async fn add_document_json(
 
 #[get("/documents/new")]
 pub async fn new_document(
-    tmpl: web::Data<tera::Tera>
+    tmpl: web::Data<tera::Tera>,
+    config: web::Data<Config>
 ) -> Result<HttpResponse, Error> {
     let mut ctx = tera::Context::new();
 
@@ -314,8 +315,22 @@ pub async fn new_document(
         amount_cents: 0
     }];
 
+    let mut invoice_payment_terms: Vec<String> = config.invoice_payment_terms.iter()
+        .map(|kv| kv.0.to_string())
+        .collect();
+
+    invoice_payment_terms.sort();
+
+    let mut tax_rates: Vec<String> = config.tax_rates.iter()
+        .map(|kv| kv.0.to_string())
+        .collect();
+
+    tax_rates.sort();
+
     ctx.insert("document", &document);
     ctx.insert("line_items", &items);
+    ctx.insert("invoice_payment_terms", &invoice_payment_terms);
+    ctx.insert("tax_rates", &tax_rates);
 
     let s = tmpl.render("document_new.html", &ctx)
         .map_err(|e| error::ErrorInternalServerError(format!("Template error: {:?}", e)))
@@ -328,7 +343,8 @@ pub async fn new_document(
 pub async fn copy_document(
     tmpl: web::Data<tera::Tera>,
     pool: web::Data<DbPool>,
-    path: web::Path<(String,)>
+    path: web::Path<(String,)>,
+    config: web::Data<Config>
 ) -> Result<HttpResponse, Error> {
     let conn = pool.get().expect("couldn't get db connection from pool");
 
@@ -342,8 +358,22 @@ pub async fn copy_document(
         ..result.clone()
     };
 
+    let mut invoice_payment_terms: Vec<String> = config.invoice_payment_terms.iter()
+        .map(|kv| kv.0.to_string())
+        .collect();
+
+    invoice_payment_terms.sort();
+
+    let mut tax_rates: Vec<String> = config.tax_rates.iter()
+        .map(|kv| kv.0.to_string())
+        .collect();
+
+    tax_rates.sort();
+
     ctx.insert("document", &doc);
     ctx.insert("line_items", &documents::line_items(&result));
+    ctx.insert("invoice_payment_terms", &invoice_payment_terms);
+    ctx.insert("tax_rates", &tax_rates);
 
     // TODO Make .kind selected in template somehow?
 
